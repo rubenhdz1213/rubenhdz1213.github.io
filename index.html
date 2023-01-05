@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="motd">
+        <h1>Mineral Madness</h1>
+        <h3 id="motdtitle"></h3>
+        <p id="motdtext1"></p>
+        <p id="motdtext2"></p>
+        <p id="motdtext3"></p>
+    </div>
+    <!-- js files for data -->
+    <div>
+        <script src="data-js-files/_motd.js"></script>
+        <script>
+            const doc = document;
+            doc.getElementById('motdtitle').innerHTML = motd.header;
+            doc.getElementById('motdtext1').innerHTML = motd.text.text1;
+            doc.getElementById('motdtext2').innerHTML = motd.text.text2;
+            doc.getElementById('motdtext3').innerHTML = motd.text.text3;
+            doc.getElementById('motdtitle').style = motdstyles.header;
+        </script>
+    </div>
+</body>
+</html>

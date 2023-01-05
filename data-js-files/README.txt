@@ -1,0 +1,1 @@
+this contains .js files meant to behave like .json files by adding global variables accessed by the game (mostly because my browser kept breaking with json for whatever reason)
