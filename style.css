@@ -1,0 +1,10 @@
+@font-face {
+  font-family: consoleFont;
+  src: url('Quicksand-VariableFont_wght.ttf');
+}
+
+body {
+  background: linear-gradient(to right, #444, #666, #777, #797979, #777, #666, #444);
+  color: white;
+  font-family: consoleFont;
+}

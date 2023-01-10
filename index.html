@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style-css-files/style.css">
+    <script src="https://requirejs.org/docs/release/2.3.6/comments/require.js"></script>
     <title>Document</title>
 </head>
 <body>
@@ -14,16 +16,18 @@
         <p id="motdtext2"></p>
         <p id="motdtext3"></p>
     </div>
-    <!-- js files for data -->
+    <!-- cosmetic scripts -->
     <div>
-        <script src="data-js-files/_motd.js"></script>
         <script>
-            const doc = document;
-            doc.getElementById('motdtitle').innerHTML = motd.header;
-            doc.getElementById('motdtext1').innerHTML = motd.text.text1;
-            doc.getElementById('motdtext2').innerHTML = motd.text.text2;
-            doc.getElementById('motdtext3').innerHTML = motd.text.text3;
-            doc.getElementById('motdtitle').style = motdstyles.header;
+            function ElementID(id) {return document.getElementById(id);}
+            ElementID('motdtitle').innerHTML = 'haha';
+            ElementID('motdtext1').innerHTML = 'frijoles';
+            ElementID('motdtext2').innerHTML = 'santigo';
+            ElementID('motdtext3').innerHTML = 'h';
+            ElementID('motdtitle').style = 'line-height: 6px; font-size: 16px';
+            ElementID('motdtext1').style = 'line-height: 4px; font-size: 12px;';
+            ElementID('motdtext2').style = 'line-height: 4px; font-size: 12px;';
+            ElementID('motdtext3').style = 'line-height: 4px; font-size: 12px;';
         </script>
     </div>
 </body>
