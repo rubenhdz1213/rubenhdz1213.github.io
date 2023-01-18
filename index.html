@@ -1,34 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
-    <script src="https://requirejs.org/docs/release/2.3.6/comments/require.js"></script>
     <title>Document</title>
 </head>
+
 <body>
     <div id="motd">
         <h1>Mineral Madness</h1>
-        <h3 id="motdtitle"></h3>
-        <p id="motdtext1"></p>
-        <p id="motdtext2"></p>
-        <p id="motdtext3"></p>
+        <h3 id="motctitle"></h3>
+        <p id="motctext1"></p>
+        <p id="motctext2"></p>
+        <p id="motctext3"></p>
+    </div>
+    <div id="console"
+        style="padding-left: 1.25vw;border-color: white; border-width: 3px; border-style: inset; width: 70vw; height: 100vh; background-color: black; font-family: consoleFont;">
+        <p id="console1" class="consoletext">></p>
+        <p id="console2" class="consoletext">></p>
+        <p id="console3" class="consoletext">></p>
+        <p id="console4" class="consoletext">></p>
+        <p id="console5" class="consoletext">></p>
+        <p id="console6" class="consoletext">></p>
+        <p id="console7" class="consoletext">></p>
+        <p id="console8" class="consoletext">></p>
+        <p id="console9" class="consoletext">></p>
+        <p id="console10" class="consoletext">></p>
+        <p id="console11" class="consoletext">></p>
+        <input type="text" id="consoleinput" style="background-color: black; color: white; border-style: solid; border-color: black;">
+    </div>
+    <!-- utility function scripts -->
+    <div>
+        <script>
+            function ElementID(id) { return document.getElementById(id); }
+            function DoesExist(value) { return value == undefined ? false : true; }
+        </script>
     </div>
     <!-- cosmetic scripts -->
     <div>
         <script>
-            function ElementID(id) {return document.getElementById(id);}
-            ElementID('motdtitle').innerHTML = 'haha';
-            ElementID('motdtext1').innerHTML = 'frijoles';
-            ElementID('motdtext2').innerHTML = 'santigo';
-            ElementID('motdtext3').innerHTML = 'h';
-            ElementID('motdtitle').style = 'line-height: 6px; font-size: 16px';
-            ElementID('motdtext1').style = 'line-height: 4px; font-size: 12px;';
-            ElementID('motdtext2').style = 'line-height: 4px; font-size: 12px;';
-            ElementID('motdtext3').style = 'line-height: 4px; font-size: 12px;';
+            ElementID('motctitle').innerHTML = 'MOTC 0.0';
+            ElementID('motctext1').innerHTML = 'game made';
+            ElementID('motctext2').innerHTML = 'there is typing now';
+            ElementID('motctext3').innerHTML = 'release';
+            ElementID('motctitle').style = 'line-height: 6px; font-size: 16px';
+            ElementID('motctext1').style = 'line-height: 4px; font-size: 12px;';
+            ElementID('motctext2').style = 'line-height: 4px; font-size: 12px;';
+            ElementID('motctext3').style = 'line-height: 4px; font-size: 12px;';
         </script>
     </div>
+    <!-- functional scripts -->
+    <div>
+        <script>
+            class Vector2 {
+                constructor(x = 0, y = 0, rotation = 0) {
+                    this.x = x;
+                    this.y = y;
+                    this.rotation = rotation % 360
+                }
+            }
+            class MapTile {
+                constructor(x = 0, y = 0, biome = 'none', materialrarities = [1, 1, 1]) {
+                    this.coordinates = new Vector2(x, y);
+                    this.biome = biome;
+                    this.rarities = {
+                        woodrarity: materialrarities[0],
+                        foilagerarity: materialrarities[0] * 2,
+                        stonerarity: materialrarities[1],
+                        clayrarity: materialrarities[2]
+                    }
+                    this.raritysum;
+                    for (let rarity in rarities) {
+                        this.raritysum += rarity;
+                    }
+                }
+            }
+            ElementID('consoleinput').addEventListener("keypress", (e) => {
+                console.log('e');
+                if (e.key == 'Enter') {
+                    inputParser(e);
+
+                }
+            });
+
+            function inputParser(e) {
+                function updateText(input = 'lorem ipsum') {
+                    for (let i = 1; i < 11; i++) {
+                        ElementID('console' + String(i)).innerHTML = ElementID('console' + String(i + 1)).innerHTML;
+                    }
+                    ElementID('console11').innerHTML = '> ' + input;
+                }
+                text = e.target.value;
+                e.target.value = '';
+                updateText(text);
+            }
+        </script>
+    </div>
+    <footer>
+        <b>haha</b>
+    </footer>
 </body>
+
 </html>

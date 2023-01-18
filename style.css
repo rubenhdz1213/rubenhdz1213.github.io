@@ -1,10 +1,23 @@
 @font-face {
+  font-family: standardFont;
+  src: url('quicksand/Quicksand-VariableFont_wght.ttf');
+}
+@font-face {
   font-family: consoleFont;
-  src: url('Quicksand-VariableFont_wght.ttf');
+  src: url('inconsolata/Inconsolata-VariableFont_wdth.ttf');
 }
 
 body {
   background: linear-gradient(to right, #444, #666, #777, #797979, #777, #666, #444);
   color: white;
-  font-family: consoleFont;
+  font-family: standardFont;
+}
+
+.consoletext {
+  line-height: 3vh;
+  font-size: 4.7vh;
+}
+
+#consoleinput:focus {
+  outline: none;
 }
