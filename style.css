@@ -14,10 +14,29 @@ body {
 }
 
 .consoletext {
-  line-height: 3vh;
-  font-size: 4.7vh;
+  line-height: 2vh;
+  font-size: 1.5vw;
 }
 
 #consoleinput:focus {
   outline: none;
+}
+
+#consoleinput {
+  font-size: 1.5vw;
+  font-family: consoleFont;
+  width: 60vw;
+  margin-bottom: 2vh;
+}
+
+#console {
+  padding-left: 1.25vw;
+  padding-bottom: 2vh;
+  border-color: white;
+  border-width: 3px;
+  border-style: inset;
+  width: 70vw;
+  height: max-content;
+  background-color: black;
+  font-family: consoleFont;
 }

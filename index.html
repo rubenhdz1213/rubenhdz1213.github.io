@@ -6,7 +6,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
-    <title>Document</title>
+    <link rel="icon" href="mining.ico">
+    <title>Mineral Madness</title>
 </head>
 
 <body>
@@ -17,8 +18,7 @@
         <p id="motctext2"></p>
         <p id="motctext3"></p>
     </div>
-    <div id="console"
-        style="padding-left: 1.25vw;border-color: white; border-width: 3px; border-style: inset; width: 70vw; height: 100vh; background-color: black; font-family: consoleFont;">
+    <div id="console">
         <p id="console1" class="consoletext">></p>
         <p id="console2" class="consoletext">></p>
         <p id="console3" class="consoletext">></p>
@@ -30,22 +30,122 @@
         <p id="console9" class="consoletext">></p>
         <p id="console10" class="consoletext">></p>
         <p id="console11" class="consoletext">></p>
-        <input type="text" id="consoleinput" style="background-color: black; color: white; border-style: solid; border-color: black;">
+        <input type="text" id="consoleinput"
+            style="background-color: black; color: white; border-style: solid; border-color: black;">
     </div>
-    <!-- utility function scripts -->
+    <!-- utility scripts -->
     <div>
+        <!-- classes -->
+        <script>
+            class Vector2 {
+                constructor(x = 0, y = 0, rotation = 0) {
+                    this.x = x;
+                    this.y = y;
+                    this.rotation = rotation % 360
+                }
+                static addVectors(vectors = [new Vector2(), new Vector2()]) {
+                    let sumx = 0;
+                    let sumy = 0;
+                    let sumr = 0;
+                    for (let i = 0; i < vectors.length; i++) {
+                        sumx += vectors[i].x;
+                        sumy += vectors[i].y;
+                        sumr += vectors[i].rotation;
+                    }
+                    return new Vector2(sumx, sumy, sumr);
+                }
+                static subtractVectors(vectors = [new Vector2(), new Vector2()]) {
+                    let diffx = 0;
+                    let diffy = 0;
+                    let diffr = 0;
+                    for (let i = 0; i < vectors.length; i++) {
+                        diffx -= vectors[i].x;
+                        diffy -= vectors[i].y;
+                        diffr -= vectors[i].rotation
+                    }
+                    return new Vector2(diffx, diffy, diffr);
+                }
+            }
+            class Vector3 extends Vector2 {
+                constructor(x = 0, y = 0, z = 0, pitch = 0, yaw = 0, roll = 0) {
+                    super(x, y);
+                    this.z = z;
+                    this.rotation = {
+                        pitch: pitch,
+                        yaw: yaw,
+                        roll: roll
+                    }
+                }
+                static addVectors(vectors = [new Vector3(), new Vector3()]) {
+                    let sumx = 0;
+                    let sumy = 0;
+                    let sumz = 0;
+                    let sumpitch = 0;
+                    let sumyaw = 0;
+                    let sumroll = 0;
+                    for (let i = 0; i < vectors.length; i++) {
+                        sumx += vectors[i].x;
+                        sumy += vectors[i].y;
+                        sumz += vectors[i].z;
+                        sumpitch += vectors[i].rotation.pitch;
+                        sumyaw += vectors[i].rotation.yaw
+                        sumroll += vectors[i].rotation.roll
+                    }
+                    return new Vector3(sumx, sumy, sumz, sumpitch, sumyaw, sumroll);
+                }
+                static subtractVectors(vectors = [new Vector3(), new Vector3()]) {
+                    let diffx = 0;
+                    let diffy = 0;
+                    let diffz = 0;
+                    let diffpitch = 0;
+                    let difyaw = 0;
+                    let diffroll = 0;
+                    for (let i = 0; i < vectors.length; i++) {
+                        diffx += vectors[i].x;
+                        diffy += vectors[i].y;
+                        diffz += vectors[i].z;
+                        diffpitch += vectors[i].rotation.pitch;
+                        diffyaw += vectors[i].rotation.yaw
+                        diffroll += vectors[i].rotation.roll
+                    }
+                    return new Vector3(diffx, diffy, diffz, diffpitch, diffyaw, diffroll);
+                }
+            }
+            class MapTile {
+                constructor(x = 0, y = 0, biome = 'none', materialprevalence = [1, 1, 1]) {
+                    this.coordinates = new Vector2(x, y);
+                    this.biome = biome;
+                    this.prevalence = {
+                        wood: materialprevalence[0],
+                        stone: materialprevalence[1],
+                        clay: materialprevalence[2]
+                    }
+                    this.prevalencesum = materialprevalence[0] + materialprevalence[1] + materialprevalence[2];
+                }
+            }
+        </script>
+        <!-- functions -->
         <script>
             function ElementID(id) { return document.getElementById(id); }
             function DoesExist(value) { return value == undefined ? false : true; }
+            function RandomNumber(min = 0, max = 1) { min = Math.ceil(min); max = Math.floor(max); return Math.round(Math.random() * (max - min) + min); }
+        </script>
+        <!-- data storage -->
+        <script>
+            // parser constants
+            const PARSER_NONE = 0;
+            const PARSER_MOVEONMAP = 1;
+            const PARSER_MINEAREA = 2;
+
         </script>
     </div>
     <!-- cosmetic scripts -->
     <div>
         <script>
-            ElementID('motctitle').innerHTML = 'MOTC 0.0';
-            ElementID('motctext1').innerHTML = 'game made';
-            ElementID('motctext2').innerHTML = 'there is typing now';
-            ElementID('motctext3').innerHTML = 'release';
+            ElementID('motctitle').innerHTML = 'MOTC 0.1';
+            ElementID('motctext1').innerHTML = 'you can mine and move and stuff now';
+            ElementID('motctext2').innerHTML = 'no limits yet';
+            ElementID('motctext3').innerHTML = 'probably broken but ill fix that later';
             ElementID('motctitle').style = 'line-height: 6px; font-size: 16px';
             ElementID('motctext1').style = 'line-height: 4px; font-size: 12px;';
             ElementID('motctext2').style = 'line-height: 4px; font-size: 12px;';
@@ -55,39 +155,31 @@
     <!-- functional scripts -->
     <div>
         <script>
-            class Vector2 {
-                constructor(x = 0, y = 0, rotation = 0) {
-                    this.x = x;
-                    this.y = y;
-                    this.rotation = rotation % 360
+            let playerData = {
+                location: new Vector2(RandomNumber(1, 10), RandomNumber(1, 10)),
+                materials: {
+                    wood: 0,
+                    stone: 0,
+                    clay: 0
+                },
+                inventory: {
+                    maxvolume: 10,
+                    volume: 0,
+                    list: [],
+                    listamounts: []
                 }
             }
-            class MapTile {
-                constructor(x = 0, y = 0, biome = 'none', materialrarities = [1, 1, 1]) {
-                    this.coordinates = new Vector2(x, y);
-                    this.biome = biome;
-                    this.rarities = {
-                        woodrarity: materialrarities[0],
-                        foilagerarity: materialrarities[0] * 2,
-                        stonerarity: materialrarities[1],
-                        clayrarity: materialrarities[2]
-                    }
-                    this.raritysum;
-                    for (let rarity in rarities) {
-                        this.raritysum += rarity;
-                    }
-                }
-            }
+
+            let parserKey = PARSER_NONE;
+
             ElementID('consoleinput').addEventListener("keypress", (e) => {
-                console.log('e');
                 if (e.key == 'Enter') {
                     inputParser(e);
-
                 }
             });
 
             function inputParser(e) {
-                function updateText(input = 'lorem ipsum') {
+                function updateText(input = 'lorem') {
                     for (let i = 1; i < 11; i++) {
                         ElementID('console' + String(i)).innerHTML = ElementID('console' + String(i + 1)).innerHTML;
                     }
@@ -96,6 +188,161 @@
                 text = e.target.value;
                 e.target.value = '';
                 updateText(text);
+                if (text == 'location' && parserKey == PARSER_NONE) {
+                    updateText('you are at x: ' + String(playerData.location.x) + ' y: ' + String(playerData.location.y));
+                    updateText('your biome is ' + map[playerData.location.x][playerData.location.y].biome);
+                }
+                if ((text == 'move' && parserKey == PARSER_NONE) || parserKey == PARSER_MOVEONMAP) {
+                    if (parserKey == PARSER_MOVEONMAP) {
+                        let coords = playerData.location;
+                        if (text == 'up' && coords.y < 9) {
+                            playerData.location.y += 1;
+                        }
+                        else if (text == 'down' && coords.y > 0) {
+                            playerData.location.y -= 1;
+                        }
+                        else if (text == 'left' && coords.x > 0) {
+                            playerData.location.x -= 1;
+                        }
+                        else if (text == 'right' && coords.x < 9) {
+                            playerData.location.x += 1;
+                        }
+                        parserKey = PARSER_NONE;
+                    }
+                    else {
+                        updateText('input direction');
+                        parserKey = PARSER_MOVEONMAP;
+                    }
+                }
+                if ((text == 'mine' && parserKey == PARSER_NONE) || parserKey == PARSER_MINEAREA) {
+                    if (parserKey == PARSER_MINEAREA) {
+                        let input = Math.ceil(text);
+                        if (input > 10) {
+                            input = 10;
+                        }
+                        let coords = playerData.location;
+                        let prevalence = map[coords.x][coords.y].prevalencesum;
+                        let prevalences = map[coords.x][coords.y].prevalence;
+                        let materialoutput = [0, 0, 0];
+                        for (let i = 0; i < Number(input); i++) {
+                            const random = RandomNumber(1, prevalence);
+                            if (random <= prevalences.clay && random >= 0) {
+                                materialoutput[0] += 1;
+                            }
+                            else if (random <= prevalences.clay + prevalences.stone && random >= prevalences.clay) {
+                                materialoutput[1] += 1;
+                            }
+                            else if (random <= prevalence && random >= prevalences.clay + prevalences.stone) {
+                                materialoutput[2] += 1;
+                            }
+                            else {
+                                console.log('Error: no material chosen');
+                            }
+                            
+                        }
+                        updateText('');
+                        ElementID('console11').innerHTML = '> []';
+                        setTimeout(() => {ElementID('console11').innerHTML = '> [-]';}, 100 * Number(input));
+                        setTimeout(() => {ElementID('console11').innerHTML = '> [--]';}, 200 * Number(input));
+                        setTimeout(() => {ElementID('console11').innerHTML = '> [---]';}, 300 * Number(input));
+                        setTimeout(() => {ElementID('console11').innerHTML = '> [----]';}, 400 * Number(input));
+                        setTimeout(() => {ElementID('console11').innerHTML = '> [-----]';}, 500 * Number(input));
+                        setTimeout(() => {ElementID('console11').innerHTML = '> [------]';}, 600 * Number(input));
+                        setTimeout(() => {ElementID('console11').innerHTML = '> [-------]';}, 700 * Number(input));
+                        setTimeout(() => {ElementID('console11').innerHTML = '> [--------]';}, 800 * Number(input));
+                        setTimeout(() => {ElementID('console11').innerHTML = '> [---------]';}, 900 * Number(input));
+                        setTimeout(() => {ElementID('console11').innerHTML = '> [----------]';}, 1000 * Number(input));
+                        setTimeout(() => {ElementID('console11').innerHTML = '> [Mining Done]';}, 1100 * Number(input));
+                        setTimeout(() => {updateText('you got ' + materialoutput[0] + ' stone, ' + materialoutput[1] + ' wood, and ' + materialoutput[2] + ' clay');}, 1101 * Number(input));
+                        let inventory = playerData.inventory;
+                        setTimeout(() => {
+                            if (materialoutput[0] > 0) {
+                                if (!playerData.inventory.list.includes('stone')) {
+                                    if (inventory.volume <= inventory.maxvolume - materialoutput[0]) {
+                                        playerData.inventory.list.push('stone');
+                                        playerData.inventory.listamounts.push(materialoutput[0]);
+                                    }
+                                }
+                                else {
+                                    playerData.inventory.listamounts[inventory.list.indexOf('stone')] += materialoutput[0];
+                                }
+                            }
+                            if (materialoutput[1] > 0) {
+                                if (!playerData.inventory.list.includes('wood')) {
+                                    if (inventory.volume <= inventory.maxvolume - materialoutput[1]) {
+                                        playerData.inventory.list.push('wood');
+                                        playerData.inventory.listamounts.push(materialoutput[1]);
+                                    }
+                                }
+                                else {
+                                    playerData.inventory.listamounts[inventory.list.indexOf('wood')] += materialoutput[1];
+                                }
+                            }
+                            if (materialoutput[2] > 0) {
+                                if (!playerData.inventory.list.includes('clay')) {
+                                    if (inventory.volume <= inventory.maxvolume - materialoutput[2]) {
+                                        playerData.inventory.list.push('clay');
+                                        playerData.inventory.listamounts.push(materialoutput[2]);
+                                    }
+                                }
+                                else {
+                                    playerData.inventory.listamounts[inventory.list.indexOf('clay')] += materialoutput[2];
+                                }
+                            }
+                        }, 1100);
+                        parserKey = PARSER_NONE;
+                        console.log(playerData.inventory.list);
+                        console.log(playerData.inventory.listamounts)
+                    }
+                    else {
+                        updateText('how many times to mine')
+                        parserKey = PARSER_MINEAREA;
+                    }
+                }
+                if (text == 'clear' && parserKey == PARSER_NONE) {
+                    for (let i = 0; i < 11; i++) {
+                        updateText('');
+                    }
+                }
+                if (text == 'test') {
+                    console.log(parserKey);
+                }
+            }
+        </script>
+        <script>
+            /** @type {Array.<MapTile>[]} */
+            let map = [[], [], [], [], [], [], [], [], [], []];
+            for (let i = 0; i < 10; i++) {
+                for (let o = 0; o < 10; o++) {
+                    let prevalence = [];
+                    let biome = '';
+                    switch (RandomNumber(1, 5)) {
+                        /*a prevalence value divided by the sum of all 3 prevalence values times 
+                        100 is about how many of a material you get per 100 resources */
+                        case 1:
+                            prevalence = [[2, 3], [1, 2], [2, 2]];
+                            biome = 'plains';
+                            break;
+                        case 2:
+                            prevalence = [[2, 2], [0, 1], [2, 2]];
+                            biome = 'plains';
+                            break;
+                        case 3:
+                            prevalence = [[0, 2], [1, 3], [1, 1]];
+                            biome = 'desert';
+                            break;
+                        case 4:
+                            prevalence = [[3, 4], [1, 1], [1, 2]];
+                            biome = 'forest';
+                            break;
+                        case 5:
+                            prevalence = [[1, 1], [3, 5], [1, 1]];
+                            biome = 'mountain';
+                            break;
+                    }
+                    let tile = new MapTile(i, o, biome, [RandomNumber(prevalence[0][0], prevalence[0][1]), RandomNumber(prevalence[1][0], prevalence[1][1]), RandomNumber(prevalence[2][0], prevalence[2][1])]);
+                    map[i].push(tile);
+                }
             }
         </script>
     </div>
