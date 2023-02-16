@@ -136,16 +136,18 @@
             const PARSER_NONE = 0;
             const PARSER_MOVEONMAP = 1;
             const PARSER_MINEAREA = 2;
-
+            //crafting
+            // const ITEMS_1 = ['wood planks'];
+            // const ITEMS_1C = [[0, 1, 0]];
         </script>
     </div>
     <!-- cosmetic scripts -->
     <div>
         <script>
-            ElementID('motctitle').innerHTML = 'MOTC 0.1';
-            ElementID('motctext1').innerHTML = 'you can mine and move and stuff now';
-            ElementID('motctext2').innerHTML = 'no limits yet';
-            ElementID('motctext3').innerHTML = 'probably broken but ill fix that later';
+            ElementID('motctitle').innerHTML = 'MOTC 0.1.1';
+            ElementID('motctext1').innerHTML = 'map is now infinite';
+            ElementID('motctext2').innerHTML = 'remade the mining system to be more randomized';
+            ElementID('motctext3').innerHTML = 'you can look at your inventory now which is cool';
             ElementID('motctitle').style = 'line-height: 6px; font-size: 16px';
             ElementID('motctext1').style = 'line-height: 4px; font-size: 12px;';
             ElementID('motctext2').style = 'line-height: 4px; font-size: 12px;';
@@ -156,7 +158,7 @@
     <div>
         <script>
             let playerData = {
-                location: new Vector2(RandomNumber(1, 10), RandomNumber(1, 10)),
+                location: new Vector2(RandomNumber(-99, 99), RandomNumber(-99, 99)),
                 materials: {
                     wood: 0,
                     stone: 0,
@@ -172,39 +174,43 @@
 
             let parserKey = PARSER_NONE;
 
-            ElementID('consoleinput').addEventListener("keypress", (e) => {
+            ElementID('consoleinput').addEventListener("keydown", (e) => {
                 if (e.key == 'Enter') {
                     inputParser(e);
                 }
+                //working on remaking this
+                /* if (e.key == 'ArrowUp') {
+                    e.target.value = ElementID('console11').innerHTML.slice(5);
+                } */
             });
 
-            function inputParser(e) {
+            function inputParser(e = new KeyboardEvent('keypress')) {
                 function updateText(input = 'lorem') {
                     for (let i = 1; i < 11; i++) {
                         ElementID('console' + String(i)).innerHTML = ElementID('console' + String(i + 1)).innerHTML;
                     }
                     ElementID('console11').innerHTML = '> ' + input;
                 }
-                text = e.target.value;
+                let text = e.target.value;
                 e.target.value = '';
                 updateText(text);
                 if (text == 'location' && parserKey == PARSER_NONE) {
                     updateText('you are at x: ' + String(playerData.location.x) + ' y: ' + String(playerData.location.y));
-                    updateText('your biome is ' + map[playerData.location.x][playerData.location.y].biome);
+                    updateText('your biome is ' + map['x' + String(playerData.location.x) + 'y' + String(playerData.location.y)].biome);
                 }
                 if ((text == 'move' && parserKey == PARSER_NONE) || parserKey == PARSER_MOVEONMAP) {
                     if (parserKey == PARSER_MOVEONMAP) {
                         let coords = playerData.location;
-                        if (text == 'up' && coords.y < 9) {
+                        if (text == 'up') {
                             playerData.location.y += 1;
                         }
-                        else if (text == 'down' && coords.y > 0) {
+                        else if (text == 'down') {
                             playerData.location.y -= 1;
                         }
-                        else if (text == 'left' && coords.x > 0) {
+                        else if (text == 'left') {
                             playerData.location.x -= 1;
                         }
-                        else if (text == 'right' && coords.x < 9) {
+                        else if (text == 'right') {
                             playerData.location.x += 1;
                         }
                         parserKey = PARSER_NONE;
@@ -216,29 +222,36 @@
                 }
                 if ((text == 'mine' && parserKey == PARSER_NONE) || parserKey == PARSER_MINEAREA) {
                     if (parserKey == PARSER_MINEAREA) {
+                        console.log('test');
                         let input = Math.ceil(text);
                         if (input > 10) {
                             input = 10;
                         }
                         let coords = playerData.location;
-                        let prevalence = map[coords.x][coords.y].prevalencesum;
-                        let prevalences = map[coords.x][coords.y].prevalence;
+                        /** @type {MapTile} */
+                        let tile = map['x' + coords.x + 'y' + coords.y];
+                        let prevalence = tile.prevalencesum;
+                        let prevalences = tile.prevalence;
                         let materialoutput = [0, 0, 0];
+                        console.log('teste');
                         for (let i = 0; i < Number(input); i++) {
                             const random = RandomNumber(1, prevalence);
-                            if (random <= prevalences.clay && random >= 0) {
-                                materialoutput[0] += 1;
+                            //*** remake mining ***//
+                            for (let o = 0; o < prevalences.stone; o++) {
+                                if (RandomNumber(1, prevalence) == prevalence) {
+                                    materialoutput[0]++;
+                                }
                             }
-                            else if (random <= prevalences.clay + prevalences.stone && random >= prevalences.clay) {
-                                materialoutput[1] += 1;
+                            for (let o = 0; o < prevalences.wood; o++) {
+                                if (RandomNumber(1, prevalence) == prevalence) {
+                                    materialoutput[1]++;
+                                }
                             }
-                            else if (random <= prevalence && random >= prevalences.clay + prevalences.stone) {
-                                materialoutput[2] += 1;
+                            for (let o = 0; o < prevalences.clay; o++) {
+                                if (RandomNumber(1, prevalence) == prevalence) {
+                                    materialoutput[2]++;
+                                }
                             }
-                            else {
-                                console.log('Error: no material chosen');
-                            }
-                            
                         }
                         updateText('');
                         ElementID('console11').innerHTML = '> []';
@@ -291,8 +304,6 @@
                             }
                         }, 1100);
                         parserKey = PARSER_NONE;
-                        console.log(playerData.inventory.list);
-                        console.log(playerData.inventory.listamounts)
                     }
                     else {
                         updateText('how many times to mine')
@@ -304,16 +315,37 @@
                         updateText('');
                     }
                 }
-                if (text == 'test') {
-                    console.log(parserKey);
+                if (text == 'inventory' && parserKey == PARSER_NONE) {
+                    let string = 'you have ';
+                    for (let i = 0; i < playerData.inventory.list.length; i++) {
+                        const item = playerData.inventory.list[i];
+                        const amount = playerData.inventory.listamounts[i];
+                        if (i == playerData.inventory.list.length - 1 && playerData.inventory.list.length >= 3) {
+                            string = string + 'and ' + amount + ' ' + item;
+                        }
+                        else if (i != playerData.inventory.list.length - 1 && playerData.inventory.list.length >= 3) {
+                            string = string + amount + ' ' + item + ', '
+                        }
+                        else if (i == 1 && playerData.inventory.list.length == 2) {
+                            string = string + 'and ' + amount + ' ' + item;
+                        }
+                        else if (i == 0 && playerData.inventory.list.length == 2) {
+                            string = string + ' ' + amount + ' ' + item + ' ';
+                        }
+                    }
+                    updateText(string);
                 }
+                /* if ((text == 'craft' && parserKey == PARSER_NONE) || parserKey == PARSER_CRAFT) {
+
+                } */
             }
         </script>
         <script>
-            /** @type {Array.<MapTile>[]} */
-            let map = [[], [], [], [], [], [], [], [], [], []];
-            for (let i = 0; i < 10; i++) {
-                for (let o = 0; o < 10; o++) {
+            let map = {
+                size: 0
+            };
+            setInterval(() => {
+                if (!map.hasOwnProperty('x' + String(playerData.location.x) + 'y' + String(playerData.location.y))) {
                     let prevalence = [];
                     let biome = '';
                     switch (RandomNumber(1, 5)) {
@@ -340,10 +372,10 @@
                             biome = 'mountain';
                             break;
                     }
-                    let tile = new MapTile(i, o, biome, [RandomNumber(prevalence[0][0], prevalence[0][1]), RandomNumber(prevalence[1][0], prevalence[1][1]), RandomNumber(prevalence[2][0], prevalence[2][1])]);
-                    map[i].push(tile);
+                    let name = 'x' + String(playerData.location.x) + 'y' + String(playerData.location.y);
+                    map[name] = new MapTile(playerData.location.x, playerData.location.y, biome, [RandomNumber(prevalence[0][0], prevalence[0][1]), RandomNumber(prevalence[1][0], prevalence[1][1]), RandomNumber(prevalence[2][0], prevalence[2][1])]);
                 }
-            }
+            }, 1000);
         </script>
     </div>
     <footer>
