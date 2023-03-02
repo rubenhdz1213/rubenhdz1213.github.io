@@ -40,3 +40,20 @@ body {
   background-color: black;
   font-family: consoleFont;
 }
+#consolee {
+  overflow-y: scroll;
+  padding-left: 1.25vw;
+  padding-bottom: 2vh;
+  border-color: white;
+  border-width: 3px;
+  border-style: inset;
+  width: 30vw;
+  height: max-content;
+  background-color: black;
+  font-family: consoleFont;
+}
+
+.consoleetext {
+  line-height: 1.25vh;
+  font-size: 1vw;
+}

@@ -33,6 +33,18 @@
         <input type="text" id="consoleinput"
             style="background-color: black; color: white; border-style: solid; border-color: black;">
     </div>
+    <div id="consolee">
+        <p id="consolee1" class="consoleetext">></p>
+        <p id="consolee2" class="consoleetext">></p>
+        <p id="consolee3" class="consoleetext">></p>
+        <p id="consolee4" class="consoleetext">></p>
+        <p id="consolee5" class="consoleetext">></p>
+        <p id="consolee6" class="consoleetext">></p>
+        <p id="consolee7" class="consoleetext">></p>
+        <p id="consolee8" class="consoleetext">></p>
+        <p id="consolee9" class="consoleetext">></p>
+        <p id="consolee10" class="consoleetext">></p>
+    </div>
     <!-- utility scripts -->
     <div>
         <!-- classes -->
@@ -123,31 +135,79 @@
                     this.prevalencesum = materialprevalence[0] + materialprevalence[1] + materialprevalence[2];
                 }
             }
+            class NumberRange {
+                #inclusivemax = new Boolean();
+                #inclusivemin = new Boolean();
+                constructor(min = 0, max = 1, inclusivemin = false, inclusivemax = true) {
+                    this.min = min;
+                    this.max = max;
+                    this.#inclusivemax = inclusivemax;
+                    this.#inclusivemin = inclusivemin;
+                }
+                BetweenRange(number) {
+                    let withinRange = true;
+                    if (this.#inclusivemin) {
+                        if (number < this.min) {
+                            withinRange = false;
+                        }
+                    }
+                    else {
+                        if (number <= this.min) {
+                            withinRange = false;
+                        }
+                    }
+                    if (this.#inclusivemax) {
+                        if (number > this.max) {
+                            withinRange = false;
+                        }
+                    }
+                    else {
+                        if (number >= this.max) {
+                            withinRange = false;
+                        }
+                    }
+                    return withinRange;
+                }
+            }
         </script>
         <!-- functions -->
         <script>
             function ElementID(id) { return document.getElementById(id); }
             function DoesExist(value) { return value == undefined ? false : true; }
             function RandomNumber(min = 0, max = 1) { min = Math.ceil(min); max = Math.floor(max); return Math.round(Math.random() * (max - min) + min); }
+            function IsDigit(string = '0') {const digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']; const chars = string.split(''); for (let i = 0; i < chars.length; i++) {const char = chars[i]; if (!digits.includes(char)) {return false;}} return true;}
         </script>
         <!-- data storage -->
         <script>
+            //error constants
+                //playerdata
+                const ERROR_NOITEM = -1;
+                const ERROR_NOTENOUGHITEM = -2;
+                const ERROR_ = -3;
             // parser constants
             const PARSER_NONE = 0;
             const PARSER_MOVEONMAP = 1;
             const PARSER_MINEAREA = 2;
-            //crafting
-            // const ITEMS_1 = ['wood planks'];
-            // const ITEMS_1C = [[0, 1, 0]];
+            const PARSER_CRAFT = 3;
+            //craftable perks
+            const PERKS_1 = ['stone tools'];
+            const PERKS_1B = [{mining: {speed: 1.1, returns: 1.05, tier: 0}}, {mining: {speed: 0, returns: 0, tier: 0}}];
+            //items
+            const ITEMS_1 = ['wood planks', 'stone chunks', 'stone tools'];
+            const ITEMS_1C = [[0, 1, 0], [2, 0, 0], [6, 3, 0]];
+            //upgrades
+                //t1 upgrades
+                /* const UPGRADES_1 = ['sharpened stone tools'];
+                const UPGRADES_1C = [[{item: 'stone chunks', amount: 4}, {item: 'wood', amount: 3}]]; */
         </script>
     </div>
     <!-- cosmetic scripts -->
     <div>
         <script>
-            ElementID('motctitle').innerHTML = 'MOTC 0.1.1';
-            ElementID('motctext1').innerHTML = 'map is now infinite';
-            ElementID('motctext2').innerHTML = 'remade the mining system to be more randomized';
-            ElementID('motctext3').innerHTML = 'you can look at your inventory now which is cool';
+            ElementID('motctitle').innerHTML = 'MOTC 0.2';
+            ElementID('motctext1').innerHTML = 'crafting system implemented';
+            ElementID('motctext2').innerHTML = 'will remake the mining system (for the 3rd time) in 0.2.1 to be less random but not too set because the current mining system is too buggy';
+            ElementID('motctext3').innerHTML = 'you can make flint tools which multiplicatively increase how fast you mine using the craft command but theres a limit (also this function will be replaced with upgrading tools in 0.2.1)';
             ElementID('motctitle').style = 'line-height: 6px; font-size: 16px';
             ElementID('motctext1').style = 'line-height: 4px; font-size: 12px;';
             ElementID('motctext2').style = 'line-height: 4px; font-size: 12px;';
@@ -158,6 +218,8 @@
     <div>
         <script>
             let playerData = {
+                lastInput: '',
+                doingAction: false,
                 location: new Vector2(RandomNumber(-99, 99), RandomNumber(-99, 99)),
                 materials: {
                     wood: 0,
@@ -167,8 +229,45 @@
                 inventory: {
                     maxvolume: 10,
                     volume: 0,
+                    /** @type {Array.<String>} */
                     list: [],
-                    listamounts: []
+                    /** @type {Array.<Number>} */
+                    listamounts: [],
+                    addItem: function(item = 'lorem', amount = 1) {
+                        if (this.list.includes(item)) {
+                            this.listamounts[this.list.indexOf(item)] += amount;
+                        }
+                        else {
+                            this.list.push(item);
+                            this.listamounts.push(amount);
+                        }
+                    },
+                    removeItem: function(item = 'lorem', amount = 1) {
+                        if (this.list.includes(item)) {
+                            if (this.listamounts[this.list.indexOf(item)] < amount) {
+                                return ERROR_NOTENOUGHITEM;
+                            }
+                            else {
+                                if (this.listamounts[this.list.indexOf(item)] - amount == 0) {
+                                    this.listamounts.splice(this.list.indexOf(item), 1);
+                                    this.list.splice(this.list.indexOf(item), 1);
+                                }
+                            }
+                        }
+                        else {
+                            return ERROR_NOITEM;
+                        }
+                    },
+                    getItemAmount: function(item = 'lorem') {
+                        return this.list.includes(item) ? this.listamounts[this.list.indexOf(item)] : ERROR_NOITEM;
+                    }
+                },
+                perks: {
+                    mining: {
+                        speed: 1,
+                        returns: 0,
+                        tier: 0                     
+                    }
                 }
             }
 
@@ -178,20 +277,25 @@
                 if (e.key == 'Enter') {
                     inputParser(e);
                 }
-                //working on remaking this
-                /* if (e.key == 'ArrowUp') {
-                    e.target.value = ElementID('console11').innerHTML.slice(5);
-                } */
+                if (e.key == 'ArrowUp') {
+                    e.target.value = playerData.lastInput;
+                }
             });
 
             function inputParser(e = new KeyboardEvent('keypress')) {
-                function updateText(input = 'lorem') {
+                function updateText(input = 'lorem', console = 1) {
+                    const whichconsole = console == 1 ? '' : 'e';
                     for (let i = 1; i < 11; i++) {
-                        ElementID('console' + String(i)).innerHTML = ElementID('console' + String(i + 1)).innerHTML;
+                        ElementID('console' + whichconsole + String(i)).innerHTML = ElementID('console' + String(i + 1)).innerHTML;
                     }
                     ElementID('console11').innerHTML = '> ' + input;
                 }
+                function updateLine(input = 'lorem', line = 1, console = 1) {
+                    const whichconsole = console == 1 ? '' : 'e';
+                    ElementID('console' + whichconsole + String(line)).innerHTML = '> ' + text; 
+                }
                 let text = e.target.value;
+                playerData.lastInput = text;
                 e.target.value = '';
                 updateText(text);
                 if (text == 'location' && parserKey == PARSER_NONE) {
@@ -221,93 +325,78 @@
                     }
                 }
                 if ((text == 'mine' && parserKey == PARSER_NONE) || parserKey == PARSER_MINEAREA) {
-                    if (parserKey == PARSER_MINEAREA) {
-                        console.log('test');
-                        let input = Math.ceil(text);
-                        if (input > 10) {
-                            input = 10;
+                    if (!playerData.doingAction) {
+                        if (parserKey == PARSER_MINEAREA) {
+                            let input = 0;
+                            if (!IsDigit(text)) {
+                                input = 1;
+                            }
+                            else {
+                                input = Math.ceil(Number(text));
+                            }
+                            if (input > 60) {
+                                input = 60;
+                            }
+                            let coords = playerData.location;
+                            /** @type {MapTile} */
+                            let tile = map['x' + coords.x + 'y' + coords.y];
+                            let prevalence = tile.prevalencesum;
+                            let prevalences = tile.prevalence;
+                            let materialoutput = [0, 0, 0];
+                            for (let i = 0; (i < Number(input) || materialoutput[0] + materialoutput[1] + materialoutput[2] != Number(input)); i++) {
+                                if (i > 75) {break;}
+                                const random = RandomNumber(1, prevalence);
+                                for (let o = 0; o < prevalences.stone; o++) {
+                                    if (RandomNumber(1, prevalence) == prevalence) {
+                                        materialoutput[0]++;
+                                    }
+                                }
+                                for (let o = 0; o < prevalences.wood; o++) {
+                                    if (RandomNumber(1, prevalence) == prevalence) {
+                                        materialoutput[1]++;
+                                    }
+                                }
+                                for (let o = 0; o < prevalences.clay; o++) {
+                                    if (RandomNumber(1, prevalence) == prevalence) {
+                                        materialoutput[2]++;
+                                    }
+                                }
+                            }
+                            updateText('');
+                            ElementID('consolee1').innerHTML = '> []';
+                            playerData.doingAction = true;
+                            setTimeout(() => {ElementID('consolee1').innerHTML = '> [-]';}, 100 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => {ElementID('consolee1').innerHTML = '> [--]';}, 200 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => {ElementID('consolee1').innerHTML = '> [---]';}, 300 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => {ElementID('consolee1').innerHTML = '> [----]';}, 400 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => {ElementID('consolee1').innerHTML = '> [-----]';}, 500 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => {ElementID('consolee1').innerHTML = '> [------]';}, 600 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => {ElementID('consolee1').innerHTML = '> [-------]';}, 700 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => {ElementID('consolee1').innerHTML = '> [--------]';}, 800 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => {ElementID('consolee1').innerHTML = '> [---------]';}, 900 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => {ElementID('consolee1').innerHTML = '> [Mining Done]'; playerData.doingAction = false;}, 1000 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => {updateText('you got ' + materialoutput[0] + ' stone, ' + materialoutput[1] + ' wood, and ' + materialoutput[2] + ' clay');}, ((1000 * input) + 1) / playerData.perks.mining.speed);
+                            let inventory = playerData.inventory;
+                            setTimeout(() => {
+                                if (materialoutput[0] > 0) {
+                                    playerData.inventory.addItem('stone', materialoutput[0]);
+                                }
+                                if (materialoutput[1] > 0) {
+                                    playerData.inventory.addItem('wood', materialoutput[1]);
+                                }
+                                if (materialoutput[2] > 0) {
+                                    playerData.inventory.addItem('clay', materialoutput[2]);
+                                }
+                            }, 1001 );
+                            parserKey = PARSER_NONE;
                         }
-                        let coords = playerData.location;
-                        /** @type {MapTile} */
-                        let tile = map['x' + coords.x + 'y' + coords.y];
-                        let prevalence = tile.prevalencesum;
-                        let prevalences = tile.prevalence;
-                        let materialoutput = [0, 0, 0];
-                        console.log('teste');
-                        for (let i = 0; i < Number(input); i++) {
-                            const random = RandomNumber(1, prevalence);
-                            //*** remake mining ***//
-                            for (let o = 0; o < prevalences.stone; o++) {
-                                if (RandomNumber(1, prevalence) == prevalence) {
-                                    materialoutput[0]++;
-                                }
-                            }
-                            for (let o = 0; o < prevalences.wood; o++) {
-                                if (RandomNumber(1, prevalence) == prevalence) {
-                                    materialoutput[1]++;
-                                }
-                            }
-                            for (let o = 0; o < prevalences.clay; o++) {
-                                if (RandomNumber(1, prevalence) == prevalence) {
-                                    materialoutput[2]++;
-                                }
-                            }
+                        else {
+                            updateText('how many times to mine');
+                            parserKey = PARSER_MINEAREA;
                         }
-                        updateText('');
-                        ElementID('console11').innerHTML = '> []';
-                        setTimeout(() => {ElementID('console11').innerHTML = '> [-]';}, 100 * Number(input));
-                        setTimeout(() => {ElementID('console11').innerHTML = '> [--]';}, 200 * Number(input));
-                        setTimeout(() => {ElementID('console11').innerHTML = '> [---]';}, 300 * Number(input));
-                        setTimeout(() => {ElementID('console11').innerHTML = '> [----]';}, 400 * Number(input));
-                        setTimeout(() => {ElementID('console11').innerHTML = '> [-----]';}, 500 * Number(input));
-                        setTimeout(() => {ElementID('console11').innerHTML = '> [------]';}, 600 * Number(input));
-                        setTimeout(() => {ElementID('console11').innerHTML = '> [-------]';}, 700 * Number(input));
-                        setTimeout(() => {ElementID('console11').innerHTML = '> [--------]';}, 800 * Number(input));
-                        setTimeout(() => {ElementID('console11').innerHTML = '> [---------]';}, 900 * Number(input));
-                        setTimeout(() => {ElementID('console11').innerHTML = '> [----------]';}, 1000 * Number(input));
-                        setTimeout(() => {ElementID('console11').innerHTML = '> [Mining Done]';}, 1100 * Number(input));
-                        setTimeout(() => {updateText('you got ' + materialoutput[0] + ' stone, ' + materialoutput[1] + ' wood, and ' + materialoutput[2] + ' clay');}, 1101 * Number(input));
-                        let inventory = playerData.inventory;
-                        setTimeout(() => {
-                            if (materialoutput[0] > 0) {
-                                if (!playerData.inventory.list.includes('stone')) {
-                                    if (inventory.volume <= inventory.maxvolume - materialoutput[0]) {
-                                        playerData.inventory.list.push('stone');
-                                        playerData.inventory.listamounts.push(materialoutput[0]);
-                                    }
-                                }
-                                else {
-                                    playerData.inventory.listamounts[inventory.list.indexOf('stone')] += materialoutput[0];
-                                }
-                            }
-                            if (materialoutput[1] > 0) {
-                                if (!playerData.inventory.list.includes('wood')) {
-                                    if (inventory.volume <= inventory.maxvolume - materialoutput[1]) {
-                                        playerData.inventory.list.push('wood');
-                                        playerData.inventory.listamounts.push(materialoutput[1]);
-                                    }
-                                }
-                                else {
-                                    playerData.inventory.listamounts[inventory.list.indexOf('wood')] += materialoutput[1];
-                                }
-                            }
-                            if (materialoutput[2] > 0) {
-                                if (!playerData.inventory.list.includes('clay')) {
-                                    if (inventory.volume <= inventory.maxvolume - materialoutput[2]) {
-                                        playerData.inventory.list.push('clay');
-                                        playerData.inventory.listamounts.push(materialoutput[2]);
-                                    }
-                                }
-                                else {
-                                    playerData.inventory.listamounts[inventory.list.indexOf('clay')] += materialoutput[2];
-                                }
-                            }
-                        }, 1100);
-                        parserKey = PARSER_NONE;
                     }
                     else {
-                        updateText('how many times to mine')
-                        parserKey = PARSER_MINEAREA;
+                        updateText('already doing something');
                     }
                 }
                 if (text == 'clear' && parserKey == PARSER_NONE) {
@@ -335,15 +424,52 @@
                     }
                     updateText(string);
                 }
-                /* if ((text == 'craft' && parserKey == PARSER_NONE) || parserKey == PARSER_CRAFT) {
-
-                } */
+                if ((text == 'craft' && parserKey == PARSER_NONE) || parserKey == PARSER_CRAFT) {
+                    if (parserKey == PARSER_CRAFT) {
+                        let enoughMaterials = 0;
+                        const index = ITEMS_1.indexOf(text);
+                        if (index != -1) {
+                            const stoneAmount = playerData.inventory.getItemAmount('stone');
+                            if (stoneAmount != -1 && ITEMS_1C[index][0] <= stoneAmount) {
+                                playerData.inventory.removeItem('stone', ITEMS_1C[index][0]);
+                                enoughMaterials += 1;
+                            }
+                            const woodAmount = playerData.inventory.getItemAmount('wood');
+                            if (woodAmount != -1 && ITEMS_1C[index][0] <= woodAmount) {
+                                playerData.inventory.removeItem('wood', ITEMS_1C[index][1]);
+                                enoughMaterials += 1;
+                            }
+                            const clayAmount = playerData.inventory.getItemAmount('stone');
+                            if (clayAmount != -1 && ITEMS_1C[index][0] <= clayAmount) {
+                                playerData.inventory.removeItem('clay', ITEMS_1C[index][2]);
+                                enoughMaterials += 1;
+                            }
+                        }
+                        if (enoughMaterials == 3) {
+                            if (playerData.inventory.list.includes(ITEMS_1[index])) {
+                                playerData.inventory.listamounts[playerData.inventory.list.indexOf(ITEMS_1[index])] += 1;
+                            }
+                            else {
+                                playerData.inventory.list.push(ITEMS_1[index]);
+                                playerData.inventory.listamounts.push(1);
+                            }
+                            if (PERKS_1.includes(text) && playerData.inventory.getItemAmount(text) < 10) {
+                                playerData.perks.mining.speed *= PERKS_1B[PERKS_1.indexOf(text)].mining.speed;
+                            }
+                        }
+                        parserKey = PARSER_NONE;
+                    }
+                    else {
+                        updateText('what to craft');
+                        parserKey = PARSER_CRAFT;
+                    }
+                }
             }
         </script>
         <script>
             let map = {
-                size: 0
-            };
+                totalTiles: 0
+            }
             setInterval(() => {
                 if (!map.hasOwnProperty('x' + String(playerData.location.x) + 'y' + String(playerData.location.y))) {
                     let prevalence = [];
@@ -375,7 +501,7 @@
                     let name = 'x' + String(playerData.location.x) + 'y' + String(playerData.location.y);
                     map[name] = new MapTile(playerData.location.x, playerData.location.y, biome, [RandomNumber(prevalence[0][0], prevalence[0][1]), RandomNumber(prevalence[1][0], prevalence[1][1]), RandomNumber(prevalence[2][0], prevalence[2][1])]);
                 }
-            }, 1000);
+            }, 100);
         </script>
     </div>
     <footer>
