@@ -14,12 +14,12 @@
     <div id="motc">
         <h1>Mineral Madness</h1>
         <p style="font-size: 0.85vw; color: red;" id="motcu">"U" before a version means it is unstable and/or unusable, while the number after the "U" tells you what is the current unstable build of that version*</p>
-        <h3 id="motctitle" style="line-height: 6px; font-size: 16px">MOTC <divisor style="color: red">U1*</divisor> 0.3</h3>
+        <h3 id="motctitle" style="line-height: 6px; font-size: 16px">MOTC <divisor style="color: red">U3*</divisor> 0.3</h3>
         <!-- <p id="motctext1" style="line-height: 1px; font-size: 12px">crafting system remade and a list of craftable items has been added</p>
         <p id="motctext2" style="line-height: 4px; font-size: 12px;"> ill attempt to add selling by 0.3.1</p>
         <p id="motctext3" style="font-size: 12px; line-height: 4px;">made a lot of classes for readability and quicker implementation</p> -->
-        <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext1">mining doesnt do anything yet as it is still being remade</p>
-        <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext1">crafting is completely broken</p>
+        <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext1">mining has been remade to be even more modular</p>
+        <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext1">crafting is being fixed</p>
     </div>
     <div id="console">
         <p id="console1" class="consoletext">></p>
@@ -135,15 +135,16 @@
                         }
                     }
                     if (inclusiveMax) {
-                        if (number < range.max) {
+                        if (number > range.max) {
                             withinRange = false;
                         }
                     }
                     else {
-                        if (number <= range.max) {
+                        if (number >= range.max) {
                             withinRange = false;
                         }
                     }
+                    return withinRange;
                 }
             }
             class Item {
@@ -192,7 +193,8 @@
                 constructor(toolVolume, toolName, costs, miningPerks, upgradeLevel, nextUpgrade) {
                     super(toolVolume, toolName, costs);
                     this.perks = {
-                        mining: miningPerks
+                        mining: miningPerks,
+                        
                     }
                     this.upgradeLevel = upgradeLevel;
                     this.nextUpgrade = nextUpgrade;
@@ -243,8 +245,10 @@
         <script>
             //error constants
                 //playerdata
-                const ERROR_NOITEM = -1;
-                const ERROR_NOTENOUGHITEM = -2;
+                    //inventory
+                    const ERROR_NOITEM = -1;
+                    const ERROR_NOTENOUGHITEM = -2;
+                    const ERROR_NOTENOUGHSPACE = -3
             // parser constants
             const PARSER_NONE = 0;
             const PARSER_MOVEONMAP = 1;
@@ -276,7 +280,7 @@
                     clay: 0
                 },
                 inventory: {
-                    maxvolume: 10,
+                    maxvolume: 250,
                     volume: 0,
                     /** @type {Array.<String>} */
                     list: [],
@@ -395,14 +399,31 @@
                             const locationbiome = tile.biome;
                             let availableMaterials = MATERIALS_1.filter((value) => {return value.biomes.includes('all') || value.biomes.includes(locationbiome)})
                             let total = 0;
+                            /** @type {Number[]} */
+                            let prevalences = [];
                             for (let i = 0; i < availableMaterials.length; i++) {
-                                total += map[playerData.location.getCoords()].prevalences[availableMaterials[i]];
+                                total += map[playerData.location.getCoords()].prevalences[availableMaterials[i].name];
+                                prevalences.push(map[playerData.location.getCoords()].prevalences[availableMaterials[i].name]);
                             }
-                            let start = 0;
                             for (let i = 0; i < input; i++) {
-                                availableMaterials[i]
+                                let start = 0;
+                                const RN = randomNumber(0, total);
+                                for (let o = 0; o < availableMaterials.length; o++) {
+                                    const material = availableMaterials[o];
+                                    if (NumberRange.betweenRange(new NumberRange(start, start + prevalences[o]), RN, true, o == availableMaterials.length - 1 ? true : false)) {
+                                        if (!materialOutput.includes(material.name)) {
+                                            materialOutput.push(material.name);
+                                            materialAmount.push(1);
+                                        }
+                                        else {
+                                            materialAmount[materialOutput.indexOf(material.name)] += 1;
+                                        }
+                                    }
+                                    start += prevalences[o];
+                                }
                             }
-                            
+                            console.log(materialAmount);
+                            console.log(materialOutput);
                             /** @type {Object} */
                             const P = tile.prevalences;
                             updateText('');
@@ -420,12 +441,13 @@
                             setTimeout(() => {EM.elementID('consolee1').innerHTML = '> [Mining Done]'; playerData.doingAction = false;}, 1000 * Number(input) / playerData.perks.mining.speed);
                             let inventory = playerData.inventory;
                             setTimeout(() => {
-                                for (let a = 0; a < array.length; a++) {
+                                for (let a = 0; a < materialOutput.length; a++) {
                                     const element = materialOutput[a];
                                     const elemen = materialAmount[a];
                                     playerData.inventory.addItem(element, elemen);
+                                    console.log(playerData.inventory.list);
                                 }
-                            }, 1001 );
+                            }, (1000 * Number(input) / playerData.perks.mining.speed) + 1);
                             parserKey = PARSER_NONE;
                         }
                         else {
@@ -458,6 +480,9 @@
                         }
                         else if (i == 0 && playerData.inventory.list.length == 2) {
                             string = string + ' ' + amount + ' ' + item + ' ';
+                        }
+                        else if (i == 0 && playerData.inventory.list.length == 1) {
+                            string = string + ' ' + amount + ' ' + item;
                         }
                     }
                     updateText(string);
@@ -515,7 +540,6 @@
                         let biome = '';
                         const number = randomNumber(1, 5);
                         chosen = true;
-                        console.log(number);
                         if (chosen) {
                             switch (number) {
                                 /*a prevalence value divided by the sum of all 3 prevalence values times 
