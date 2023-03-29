@@ -13,13 +13,16 @@
 <body>
     <div id="motc">
         <h1>Mineral Madness</h1>
-        <p style="font-size: 0.85vw; color: red;" id="motcu">"U" before a version means it is unstable and/or unusable, while the number after the "U" tells you what is the current unstable build of that version*</p>
-        <h3 id="motctitle" style="line-height: 6px; font-size: 16px">MOTC <divisor style="color: red">U3*</divisor> 0.3</h3>
+        <p style="font-size: 0.85vw; color: red;" id="motcu">"U" before a version means it is unstable and/or unusable,
+            while the number after the "U" tells you what is the current unstable build of that version*</p>
+        <h3 id="motctitle" style="line-height: 6px; font-size: 16px">MOTC <divisor style="color: red">U4*</divisor> 0.3
+        </h3>
         <!-- <p id="motctext1" style="line-height: 1px; font-size: 12px">crafting system remade and a list of craftable items has been added</p>
         <p id="motctext2" style="line-height: 4px; font-size: 12px;"> ill attempt to add selling by 0.3.1</p>
         <p id="motctext3" style="font-size: 12px; line-height: 4px;">made a lot of classes for readability and quicker implementation</p> -->
-        <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext1">mining has been remade to be even more modular</p>
-        <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext1">crafting is being fixed</p>
+        <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext1">recipes command exists</p>
+        <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext2">crafting is fixed but perks from tools dont exist yet</p>
+        <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext3">there is now a cool looking submit button for mobile and stuff as well as a better looking input</p>
     </div>
     <div id="console">
         <p id="console1" class="consoletext">></p>
@@ -34,7 +37,8 @@
         <p id="console10" class="consoletext">></p>
         <p id="console11" class="consoletext">></p>
         <input type="text" id="consoleinput"
-            style="background-color: black; color: white; border-style: solid; border-color: black;">
+            style=" color: white; border-style: solid; border-color: black;">
+        <button id="submit">Submit</button>
     </div>
     <div id="consolee">
         <p id="consolee1" class="consoleetext">></p>
@@ -53,7 +57,7 @@
         <!-- classes -->
         <script>
             class Vector2 {
-                /** @param {Number} x @param {Number} y @param {Number} rotation */ 
+                /** @param {Number} x @param {Number} y @param {Number} rotation */
                 constructor(x, y, rotation) {
                     this.x = x;
                     this.y = y;
@@ -130,7 +134,7 @@
                         }
                     }
                     else {
-                        if(number <= range.min) {
+                        if (number <= range.min) {
                             withinRange = false;
                         }
                     }
@@ -149,7 +153,7 @@
             }
             class Item {
                 /** @param {Number} itemVolume @param {String} itemName */
-                constructor (itemVolume, itemName) {
+                constructor(itemVolume, itemName) {
                     this.volume = itemVolume;
                     this.name = itemName;
                 }
@@ -160,10 +164,10 @@
             }
             class MapComponent {
                 /** @param {Number} x @param {Number} y */
-                constructor (x, y) {
+                constructor(x, y) {
                     this.coordinates = new Vector2(x, y);
                 }
-                /** @param {Number} x @param {Number} y */ 
+                /** @param {Number} x @param {Number} y */
                 shiftLocation(x, y) {
                     this.coordinates.x += x;
                     this.coordinates.y += y;
@@ -189,15 +193,13 @@
                 }
             }
             class Tool extends CraftableItem {
-                /** @param {Number} toolVolume @param {String} toolName @param {Object[]} costs @param {String} costs[].item @param {Number} costs[].amount @param {Object} miningPerks @param {Number} miningPerks.speed @param {Number} miningPerks.returns @param {Number} miningPerks.tier @param {Number} upgradeLevel @param {String} nextUpgrade */
-                constructor(toolVolume, toolName, costs, miningPerks, upgradeLevel, nextUpgrade) {
+                /** @param {Number} toolVolume @param {String} toolName @param {Object[]} costs @param {String} costs[].item @param {Number} costs[].amount @param {Object} miningPerks @param {Number} miningPerks.speed @param {Number} miningPerks.returns @param {Number} miningPerks.tier*/
+                constructor(toolVolume, toolName, costs, miningPerks) {
                     super(toolVolume, toolName, costs);
                     this.perks = {
                         mining: miningPerks,
-                        
+
                     }
-                    this.upgradeLevel = upgradeLevel;
-                    this.nextUpgrade = nextUpgrade;
                 }
             }
             class MapTile extends MapComponent {
@@ -223,7 +225,7 @@
                     this.materials = materials
                     this.tier = tier;
                     this.costItems = costItems;
-                    this.costAmounts = costAmounts; 
+                    this.costAmounts = costAmounts;
                 }
             }
         </script>
@@ -231,24 +233,24 @@
         <script>
             const EM = {
                 /** @param {String} id */
-                elementID: function(id) { return document.getElementById(id); },
+                elementID: function (id) { return document.getElementById(id); },
                 /** @param {String} classname */
-                elementsClass: function(classname) { return document.getElementsByClassName(classname); },
+                elementsClass: function (classname) { return document.getElementsByClassName(classname); },
                 /** @param {HTMLElement} element */
-                elementText: function(element, text) { element.innerHTML = text; }
+                elementText: function (element, text) { element.innerHTML = text; }
             }
             function doesExist(value) { return value == undefined ? false : true; }
             function randomNumber(min = 0, max = 1) { min = Math.ceil(min); max = Math.floor(max); return Math.round(Math.random() * (max - min) + min); }
-            function isDigit(string = '0') {const digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']; const chars = string.split(''); for (let i = 0; i < chars.length; i++) {const char = chars[i]; if (!digits.includes(char)) {return false;}} return true;}
+            function isDigit(string = '0') { const digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']; const chars = string.split(''); for (let i = 0; i < chars.length; i++) { const char = chars[i]; if (!digits.includes(char)) { return false; } } return true; }
         </script>
         <!-- data storage -->
         <script>
             //error constants
-                //playerdata
-                    //inventory
-                    const ERROR_NOITEM = -1;
-                    const ERROR_NOTENOUGHITEM = -2;
-                    const ERROR_NOTENOUGHSPACE = -3
+            //playerdata
+            //inventory
+            const ERROR_NOITEM = -1;
+            const ERROR_NOTENOUGHITEM = -2;
+            const ERROR_NOTENOUGHSPACE = -3
             // parser constants
             const PARSER_NONE = 0;
             const PARSER_MOVEONMAP = 1;
@@ -256,10 +258,7 @@
             const PARSER_CRAFT = 3;
             //items
             /** @type {Array.<CraftableItem|Tool>} */
-            const ITEMS_1 = [new CraftableItem(1, 'wood planks', [{ item: 'wood', amount: 1 }], 2), new CraftableItem(2, 'stone chunks', [{ item: 'stone', amount: 2 }]), new Tool(5, 'stone tools', [{ item: 'stone', amount: 6 }, { item: 'wood', amount: 3 }], 0, 'sharpened stone tools')];
-            //upgrades
-                //t1 upgrades
-                const UPGRADES_1 = [new Tool(5, 'sharpened stone tools', [{ item: 'stone chunks', amount: 2 }, { item: 'wood', amount: 3 }], { speed: 1.2, returns: 1, tier: 0 }, 0, 'none')];
+            const ITEMS_1 = [new CraftableItem(1, 'wood planks', [{ item: 'wood', amount: 1 }], 2), new CraftableItem(2, 'stone chunks', [{ item: 'stone', amount: 2 }]), new Tool(5, 'stone tools', [{ item: 'stone', amount: 6 }, { item: 'wood', amount: 3 }], { returns: 1, speed: 1.2, tier: 0 })];
         </script>
     </div>
     <!-- functional scripts -->
@@ -270,8 +269,8 @@
                 doingAction: false,
                 location: {
                     vector: new Vector2(randomNumber(-99, 99), randomNumber(-99, 99)),
-                    getCoords: function() {
-                        return 'x' + String(this.vector.x) + 'y' + String(this.vector.y);
+                    getCoords: function () {
+                        return `x${String(this.vector.x)}y${String(this.vector.y)}`;
                     }
                 },
                 materials: {
@@ -286,7 +285,8 @@
                     list: [],
                     /** @type {Array.<Number>} */
                     listamounts: [],
-                    addItem: function(item = 'lorem', amount = 1) {
+                    /**  @param {String} item */
+                    addItem: function (item, amount = 1) {
                         if (this.list.includes(item)) {
                             this.listamounts[this.list.indexOf(item)] += amount;
                         }
@@ -295,7 +295,8 @@
                             this.listamounts.push(amount);
                         }
                     },
-                    removeItem: function(item = 'lorem', amount = 1) {
+                    /** @param {String} item */
+                    removeItem: function (item, amount = 1) {
                         if (this.list.includes(item)) {
                             if (this.listamounts[this.list.indexOf(item)] < amount) {
                                 return ERROR_NOTENOUGHITEM;
@@ -305,13 +306,17 @@
                                     this.listamounts.splice(this.list.indexOf(item), 1);
                                     this.list.splice(this.list.indexOf(item), 1);
                                 }
+                                else {
+                                    this.listamounts[this.list.indexOf(item)] -= amount;
+                                }
                             }
                         }
                         else {
                             return ERROR_NOITEM;
                         }
                     },
-                    getItemAmount: function(item = 'lorem') {
+                    /** @param {String} item */
+                    getItemAmount: function (item) {
                         return this.list.includes(item) ? this.listamounts[this.list.indexOf(item)] : ERROR_NOITEM;
                     }
                 },
@@ -319,40 +324,51 @@
                     mining: {
                         speed: 1,
                         returns: 0,
-                        tier: 0                     
+                        tier: 0
                     }
                 }
             }
             let parserKey = PARSER_NONE;
-
+            EM.elementID('submit').addEventListener("click", (e) => {
+                inputParser(EM.elementID('consoleinput').value);
+                EM.elementID('submit').animate([
+                    { backgroundColor: '#424242' },
+                    { backgroundColor: '#212121' },
+                    { backgroundColor: '#424242' }
+                ], {
+                    duration: 100,
+                    easing: "ease-out"
+                })
+            })
             EM.elementID('consoleinput').addEventListener("keydown", (e) => {
                 if (e.key == 'Enter') {
-                    inputParser(e);
+                    inputParser(e.target.value);
                 }
                 if (e.key == 'ArrowUp') {
                     e.target.value = playerData.lastInput;
                 }
             });
-
-            function inputParser(e = new KeyboardEvent('keypress')) {
-                function updateText(input = 'lorem', console = 1) {
-                    const whichconsole = console == 1 ? '' : 'e';
+            /**  @param {String} value */
+            function inputParser(value) {
+                /** @param {String} input */
+                function updateText(input, cons = 1) {
+                    const whichconsole = cons == 1 ? '' : 'e';
                     for (let i = 1; i < 11; i++) {
                         EM.elementID('console' + whichconsole + String(i)).innerHTML = EM.elementID('console' + String(i + 1)).innerHTML;
                     }
                     EM.elementID('console11').innerHTML = '> ' + input;
                 }
-                function updateLine(input = 'lorem', line = 1, console = 1) {
-                    const whichconsole = console == 1 ? '' : 'e';
-                    EM.elementID('console' + whichconsole + String(line)).innerHTML = '> ' + text; 
+                function updateLine(input = 'lorem', line = 1, cons = 1) {
+                    const whichconsole = cons == 1 ? '' : 'e';
+                    EM.elementID('console' + whichconsole + String(line)).innerHTML = '> ' + input;
                 }
-                let text = e.target.value;
+                let text = value;
                 playerData.lastInput = text;
-                e.target.value = '';
+                EM.elementID('consoleinput').value = '';
                 updateText(text);
                 if (text == 'location' && parserKey == PARSER_NONE) {
-                    updateText('you are at x: ' + String(playerData.location.vector.x) + ' y: ' + String(playerData.location.vector.y));
-                    updateText('your biome is ' + map['x' + String(playerData.location.vector.x) + 'y' + String(playerData.location.vector.y)].biome);
+                    updateText(`you are at x: ${String(playerData.location.vector.x)} y: ${String(playerData.location.vector.y)}`);
+                    updateText(`your biome is ${map[`x${String(playerData.location.vector.x)}y${String(playerData.location.vector.y)}`].biome}`);
                 }
                 if ((text == 'move' && parserKey == PARSER_NONE) || parserKey == PARSER_MOVEONMAP) {
                     if (parserKey == PARSER_MOVEONMAP) {
@@ -397,7 +413,7 @@
                             let materialAmount = [];
                             /** @type {String[]} */
                             const locationbiome = tile.biome;
-                            let availableMaterials = MATERIALS_1.filter((value) => {return value.biomes.includes('all') || value.biomes.includes(locationbiome)})
+                            let availableMaterials = MATERIALS_1.filter((value) => { return value.biomes.includes('all') || value.biomes.includes(locationbiome) })
                             let total = 0;
                             /** @type {Number[]} */
                             let prevalences = [];
@@ -422,30 +438,27 @@
                                     start += prevalences[o];
                                 }
                             }
-                            console.log(materialAmount);
-                            console.log(materialOutput);
                             /** @type {Object} */
-                            const P = tile.prevalences;
                             updateText('');
                             EM.elementID('consolee1').innerHTML = '> []';
                             playerData.doingAction = true;
-                            setTimeout(() => {EM.elementID('consolee1').innerHTML = '> [-]';}, 100 * Number(input) / playerData.perks.mining.speed);
-                            setTimeout(() => {EM.elementID('consolee1').innerHTML = '> [--]';}, 200 * Number(input) / playerData.perks.mining.speed);
-                            setTimeout(() => {EM.elementID('consolee1').innerHTML = '> [---]';}, 300 * Number(input) / playerData.perks.mining.speed);
-                            setTimeout(() => {EM.elementID('consolee1').innerHTML = '> [----]';}, 400 * Number(input) / playerData.perks.mining.speed);
-                            setTimeout(() => {EM.elementID('consolee1').innerHTML = '> [-----]';}, 500 * Number(input) / playerData.perks.mining.speed);
-                            setTimeout(() => {EM.elementID('consolee1').innerHTML = '> [------]';}, 600 * Number(input) / playerData.perks.mining.speed);
-                            setTimeout(() => {EM.elementID('consolee1').innerHTML = '> [-------]';}, 700 * Number(input) / playerData.perks.mining.speed);
-                            setTimeout(() => {EM.elementID('consolee1').innerHTML = '> [--------]';}, 800 * Number(input) / playerData.perks.mining.speed);
-                            setTimeout(() => {EM.elementID('consolee1').innerHTML = '> [---------]';}, 900 * Number(input) / playerData.perks.mining.speed);
-                            setTimeout(() => {EM.elementID('consolee1').innerHTML = '> [Mining Done]'; playerData.doingAction = false;}, 1000 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => { EM.elementID('consolee1').innerHTML = '> [-]'; }, 100 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => { EM.elementID('consolee1').innerHTML = '> [--]'; }, 200 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => { EM.elementID('consolee1').innerHTML = '> [---]'; }, 300 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => { EM.elementID('consolee1').innerHTML = '> [----]'; }, 400 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => { EM.elementID('consolee1').innerHTML = '> [-----]'; }, 500 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => { EM.elementID('consolee1').innerHTML = '> [------]'; }, 600 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => { EM.elementID('consolee1').innerHTML = '> [-------]'; }, 700 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => { EM.elementID('consolee1').innerHTML = '> [--------]'; }, 800 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => { EM.elementID('consolee1').innerHTML = '> [---------]'; }, 900 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => { EM.elementID('consolee1').innerHTML = '> [Mining Done]'; playerData.doingAction = false; }, 1000 * Number(input) / playerData.perks.mining.speed);
                             let inventory = playerData.inventory;
                             setTimeout(() => {
+                                updateLine('you got egg', 1, 1);
                                 for (let a = 0; a < materialOutput.length; a++) {
                                     const element = materialOutput[a];
                                     const elemen = materialAmount[a];
                                     playerData.inventory.addItem(element, elemen);
-                                    console.log(playerData.inventory.list);
                                 }
                             }, (1000 * Number(input) / playerData.perks.mining.speed) + 1);
                             parserKey = PARSER_NONE;
@@ -470,56 +483,52 @@
                         const item = playerData.inventory.list[i];
                         const amount = playerData.inventory.listamounts[i];
                         if (i == playerData.inventory.list.length - 1 && playerData.inventory.list.length >= 3) {
-                            string = string + 'and ' + amount + ' ' + item;
+                            string = `${string} ${amount} ${item}`;
                         }
                         else if (i != playerData.inventory.list.length - 1 && playerData.inventory.list.length >= 3) {
-                            string = string + amount + ' ' + item + ', '
+                            string = `${string} ${amount} ${item}, `
                         }
                         else if (i == 1 && playerData.inventory.list.length == 2) {
-                            string = string + 'and ' + amount + ' ' + item;
+                            string = `${string} and ${amount} ${item}`;
                         }
                         else if (i == 0 && playerData.inventory.list.length == 2) {
-                            string = string + ' ' + amount + ' ' + item + ' ';
+                            string = `${string} ${amount} ${item} `;
                         }
                         else if (i == 0 && playerData.inventory.list.length == 1) {
-                            string = string + ' ' + amount + ' ' + item;
+                            string = `${string} ${amount} ${item}`;
                         }
+                    }
+                    if (playerData.inventory.list.length == 0) {
+                        string = 'you have nothing';
                     }
                     updateText(string);
                 }
                 if ((text == 'craft' && parserKey == PARSER_NONE) || parserKey == PARSER_CRAFT) {
                     if (parserKey == PARSER_CRAFT) {
-                        let enoughMaterials = 0;
-                        const index = ITEMS_1.indexOf(text);
+                        const index = ITEMS_1.findIndex((value) => { return value.name == text });
+                        let mats = 0;
                         if (index != -1) {
-                            const stoneAmount = playerData.inventory.getItemAmount('stone');
-                            if (stoneAmount != -1 && ITEMS_1C[index][0] <= stoneAmount) {
-                                playerData.inventory.removeItem('stone', ITEMS_1C[index][0]);
-                                enoughMaterials += 1;
+                            for (let i = 0; i < ITEMS_1[index].costs.length; i++) {
+                                const remove = playerData.inventory.removeItem(ITEMS_1[index].costs[i].item, ITEMS_1[index].costs[i].amount);
+                                if (remove == ERROR_NOITEM) {
+                                    updateText(`you don't have any ${ITEMS_1[index].costs[i].item}, you need ${ITEMS_1[index].costs[i].amount}`);
+                                }
+                                else if (remove == ERROR_NOTENOUGHITEM) {
+                                    updateText(`you don't have enough ${ITEMS_1[index].costs[i].item}, you need ${ITEMS_1[index].costs[i].amount - playerData.inventory.getItemAmount(ITEMS_1[index].costs[i].item)} more`)
+                                }
+                                else {
+                                    mats++;
+                                }
                             }
-                            const woodAmount = playerData.inventory.getItemAmount('wood');
-                            if (woodAmount != -1 && ITEMS_1C[index][0] <= woodAmount) {
-                                playerData.inventory.removeItem('wood', ITEMS_1C[index][1]);
-                                enoughMaterials += 1;
-                            }
-                            const clayAmount = playerData.inventory.getItemAmount('stone');
-                            if (clayAmount != -1 && ITEMS_1C[index][0] <= clayAmount) {
-                                playerData.inventory.removeItem('clay', ITEMS_1C[index][2]);
-                                enoughMaterials += 1;
-                            }
-                        }
-                        if (enoughMaterials == 3) {
-                            if (playerData.inventory.list.includes(ITEMS_1[index])) {
-                                playerData.inventory.listamounts[playerData.inventory.list.indexOf(ITEMS_1[index])] += 1;
-                            }
-                            else {
-                                playerData.inventory.list.push(ITEMS_1[index]);
-                                playerData.inventory.listamounts.push(1);
-                            }
-                            if (PERKS_1.includes(text) && playerData.inventory.getItemAmount(text) < 10) {
-                                playerData.perks.mining.speed *= PERKS_1B[PERKS_1.indexOf(text)].mining.speed;
+                            if (mats == ITEMS_1[index].costs.length) {
+                                playerData.inventory.addItem(ITEMS_1[index].name, ITEMS_1[index].craftMultiplier);
                             }
                         }
+                        /*
+                        costs are an array of objects with the properties item and amount
+                        item is the name of the item needed to craft
+                        amount is the amount of the item needed to craft
+                        */
                         parserKey = PARSER_NONE;
                     }
                     else {
@@ -527,6 +536,22 @@
                         parserKey = PARSER_CRAFT;
                     }
                 }
+                if (text == 'recipes' && parserKey == PARSER_NONE) {
+                    ITEMS_1.forEach((value) => {
+                        let string = `${value.name} costs:`
+                        value.costs.forEach((valueb, index) => {
+                            if (true) {
+                                string = `${string} ${valueb.amount} ${valueb.item}`
+                            } 
+                        })
+                        updateText(string);
+                    });
+                }
+                // if (text == 'tset') {
+                //     MATERIALS_1.forEach((value) => {
+                //         playerData.inventory.addItem(value.name, 999)
+                //     }) 
+                // }
             }
         </script>
         <script>
@@ -566,13 +591,13 @@
                                     break;
                             }
                         }
-                        let name = 'x' + String(playerData.location.vector.x) + 'y' + String(playerData.location.vector.y);
+                        let name = `x${String(playerData.location.vector.x)}y${String(playerData.location.vector.y)}`;
                         if (!map.hasOwnProperty(playerData.location.getCoords())) {
                             map[name] = new MapTile(playerData.location.vector.x, playerData.location.vector.y, biome, [randomNumber(prevalenceOffset[0][0], prevalenceOffset[0][1]), randomNumber(prevalenceOffset[1][0], prevalenceOffset[1][1]), randomNumber(prevalenceOffset[2][0], prevalenceOffset[2][1]), randomNumber(prevalenceOffset[3][0], prevalenceOffset[3][1])]);
                         }
                         chosen = false;
                     }
-                }, 100);  
+                }, 100);
             }  
         </script>
     </div>
