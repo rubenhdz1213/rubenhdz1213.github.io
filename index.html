@@ -13,16 +13,15 @@
 <body>
     <div id="motc">
         <h1>Mineral Madness</h1>
-        <p style="font-size: 0.85vw; color: red;" id="motcu">"U" before a version means it is unstable and/or unusable,
-            while the number after the "U" tells you what is the current unstable build of that version*</p>
-        <h3 id="motctitle" style="line-height: 6px; font-size: 16px">MOTC <divisor style="color: red">U4*</divisor> 0.3
+        <!-- <p style="font-size: 0.85vw; color: red;" id="motcu">"U" before a version means it is unstable and/or unusable, while the number after the "U" tells you what is the current unstable build of that version*</p> -->
+        <h3 id="motctitle" style="line-height: 6px; font-size: 16px">MOTC <!-- <divisor style="color: red">U4*</divisor> --> 0.3
         </h3>
-        <!-- <p id="motctext1" style="line-height: 1px; font-size: 12px">crafting system remade and a list of craftable items has been added</p>
+        <p id="motctext1" style="line-height: 1px; font-size: 12px">crafting system remade and a list of craftable items has been added</p>
         <p id="motctext2" style="line-height: 4px; font-size: 12px;"> ill attempt to add selling by 0.3.1</p>
-        <p id="motctext3" style="font-size: 12px; line-height: 4px;">made a lot of classes for readability and quicker implementation</p> -->
-        <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext1">recipes command exists</p>
+        <p id="motctext3" style="font-size: 12px; line-height: 4px;">made a lot of classes for readability and quicker implementation, as well as basically the entire game being modular now</p>
+        <!-- <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext1">recipes command exists</p>
         <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext2">crafting is fixed but perks from tools dont exist yet</p>
-        <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext3">there is now a cool looking submit button for mobile and stuff as well as a better looking input</p>
+        <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext3">there is now a cool looking submit button for mobile and stuff as well as a better looking input</p> -->
     </div>
     <div id="console">
         <p id="console1" class="consoletext">></p>
@@ -193,13 +192,22 @@
                 }
             }
             class Tool extends CraftableItem {
+                #hasBeenUsed = false;
                 /** @param {Number} toolVolume @param {String} toolName @param {Object[]} costs @param {String} costs[].item @param {Number} costs[].amount @param {Object} miningPerks @param {Number} miningPerks.speed @param {Number} miningPerks.returns @param {Number} miningPerks.tier*/
                 constructor(toolVolume, toolName, costs, miningPerks) {
                     super(toolVolume, toolName, costs);
                     this.perks = {
                         mining: miningPerks,
-
                     }
+                }
+                perksPush() {
+                    this.#hasBeenUsed = true;
+                    playerData.perks.mining.returns *= this.perks.mining.returns;
+                    playerData.perks.mining.speed *= this.perks.mining.speed;
+                    playerData.perks.mining.tier = this.perks.mining.tier > playerData.perks.mining.speed ? this.perks.mining.tier : playerData.perks.mining.tier;
+                }
+                isUsed() {
+                    return this.#hasBeenUsed;
                 }
             }
             class MapTile extends MapComponent {
@@ -523,6 +531,9 @@
                             if (mats == ITEMS_1[index].costs.length) {
                                 playerData.inventory.addItem(ITEMS_1[index].name, ITEMS_1[index].craftMultiplier);
                             }
+                            if (typeof ITEMS_1[index].perksPush === "function" && !(ITEMS_1[index].isUsed())) {
+                                ITEMS_1[index].perksPush();
+                            }
                         }
                         /*
                         costs are an array of objects with the properties item and amount
@@ -547,11 +558,12 @@
                         updateText(string);
                     });
                 }
-                // if (text == 'tset') {
-                //     MATERIALS_1.forEach((value) => {
-                //         playerData.inventory.addItem(value.name, 999)
-                //     }) 
-                // }
+                if (text == 'tset') {
+                    MATERIALS_1.forEach((value) => {
+                        playerData.inventory.addItem(value.name, 999)
+                    });
+                    console.log(String(playerData.perks.mining.speed));
+                }
             }
         </script>
         <script>
