@@ -11,12 +11,17 @@
 </head>
 
 <body>
-    <div id="motd">
+    <div id="motc">
         <h1>Mineral Madness</h1>
-        <h3 id="motctitle"></h3>
-        <p id="motctext1"></p>
-        <p id="motctext2"></p>
-        <p id="motctext3"></p>
+        <!-- <p style="font-size: 0.85vw; color: red;" id="motcu">"U" before a version means it is unstable and/or unusable, while the number after the "U" tells you what is the current unstable build of that version*</p> -->
+        <h3 id="motctitle" style="line-height: 6px; font-size: 16px">MOTC <!-- <divisor style="color: red">U4*</divisor> --> 0.3
+        </h3>
+        <p id="motctext1" style="line-height: 1px; font-size: 12px">crafting system remade and a list of craftable items has been added</p>
+        <p id="motctext2" style="line-height: 4px; font-size: 12px;"> ill attempt to add selling by 0.3.1</p>
+        <p id="motctext3" style="font-size: 12px; line-height: 4px;">made a lot of classes for readability and quicker implementation, as well as basically the entire game being modular now</p>
+        <!-- <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext1">recipes command exists</p>
+        <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext2">crafting is fixed but perks from tools dont exist yet</p>
+        <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext3">there is now a cool looking submit button for mobile and stuff as well as a better looking input</p> -->
     </div>
     <div id="console">
         <p id="console1" class="consoletext">></p>
@@ -31,7 +36,8 @@
         <p id="console10" class="consoletext">></p>
         <p id="console11" class="consoletext">></p>
         <input type="text" id="consoleinput"
-            style="background-color: black; color: white; border-style: solid; border-color: black;">
+            style=" color: white; border-style: solid; border-color: black;">
+        <button id="submit">Submit</button>
     </div>
     <div id="consolee">
         <p id="consolee1" class="consoleetext">></p>
@@ -50,12 +56,14 @@
         <!-- classes -->
         <script>
             class Vector2 {
-                constructor(x = 0, y = 0, rotation = 0) {
+                /** @param {Number} x @param {Number} y @param {Number} rotation */
+                constructor(x, y, rotation) {
                     this.x = x;
                     this.y = y;
-                    this.rotation = rotation % 360
+                    this.rotation = rotation % 360;
                 }
-                static addVectors(vectors = [new Vector2(), new Vector2()]) {
+                /** @param {Vector2[]} vectors */
+                static addVectors(vectors) {
                     let sumx = 0;
                     let sumy = 0;
                     let sumr = 0;
@@ -66,7 +74,8 @@
                     }
                     return new Vector2(sumx, sumy, sumr);
                 }
-                static subtractVectors(vectors = [new Vector2(), new Vector2()]) {
+                /** @param {Vector2[]} vectors */
+                static subtractVectors(vectors) {
                     let diffx = 0;
                     let diffy = 0;
                     let diffr = 0;
@@ -78,140 +87,186 @@
                     return new Vector2(diffx, diffy, diffr);
                 }
             }
-            class Vector3 extends Vector2 {
-                constructor(x = 0, y = 0, z = 0, pitch = 0, yaw = 0, roll = 0) {
-                    super(x, y);
-                    this.z = z;
-                    this.rotation = {
-                        pitch: pitch,
-                        yaw: yaw,
-                        roll: roll
-                    }
-                }
-                static addVectors(vectors = [new Vector3(), new Vector3()]) {
-                    let sumx = 0;
-                    let sumy = 0;
-                    let sumz = 0;
-                    let sumpitch = 0;
-                    let sumyaw = 0;
-                    let sumroll = 0;
-                    for (let i = 0; i < vectors.length; i++) {
-                        sumx += vectors[i].x;
-                        sumy += vectors[i].y;
-                        sumz += vectors[i].z;
-                        sumpitch += vectors[i].rotation.pitch;
-                        sumyaw += vectors[i].rotation.yaw
-                        sumroll += vectors[i].rotation.roll
-                    }
-                    return new Vector3(sumx, sumy, sumz, sumpitch, sumyaw, sumroll);
-                }
-                static subtractVectors(vectors = [new Vector3(), new Vector3()]) {
-                    let diffx = 0;
-                    let diffy = 0;
-                    let diffz = 0;
-                    let diffpitch = 0;
-                    let difyaw = 0;
-                    let diffroll = 0;
-                    for (let i = 0; i < vectors.length; i++) {
-                        diffx += vectors[i].x;
-                        diffy += vectors[i].y;
-                        diffz += vectors[i].z;
-                        diffpitch += vectors[i].rotation.pitch;
-                        diffyaw += vectors[i].rotation.yaw
-                        diffroll += vectors[i].rotation.roll
-                    }
-                    return new Vector3(diffx, diffy, diffz, diffpitch, diffyaw, diffroll);
-                }
-            }
-            class MapTile {
-                constructor(x = 0, y = 0, biome = 'none', materialprevalence = [1, 1, 1]) {
-                    this.coordinates = new Vector2(x, y);
-                    this.biome = biome;
-                    this.prevalence = {
-                        wood: materialprevalence[0],
-                        stone: materialprevalence[1],
-                        clay: materialprevalence[2]
-                    }
-                    this.prevalencesum = materialprevalence[0] + materialprevalence[1] + materialprevalence[2];
-                }
-            }
             class NumberRange {
-                #inclusivemax = new Boolean();
-                #inclusivemin = new Boolean();
-                constructor(min = 0, max = 1, inclusivemin = false, inclusivemax = true) {
+                /** @param {Number} min @param {Number} max */
+                constructor(min, max, inclusiveMin, inclusiveMax) {
                     this.min = min;
                     this.max = max;
-                    this.#inclusivemax = inclusivemax;
-                    this.#inclusivemin = inclusivemin;
+                    this.inclusiveMax = inclusiveMax;
+                    this.inclusiveMin = inclusiveMin;
                 }
-                BetweenRange(number) {
+                /** @param {Number} number @param {Number} offsetMin @param {Number} offsetMax */
+                betweenRange(number, offsetMin, offsetMax) {
                     let withinRange = true;
-                    if (this.#inclusivemin) {
-                        if (number < this.min) {
+                    if (this.inclusivemin) {
+                        if (number < this.min + offsetMin) {
                             withinRange = false;
                         }
                     }
                     else {
-                        if (number <= this.min) {
+                        if (number <= this.min + offsetMin) {
                             withinRange = false;
                         }
                     }
-                    if (this.#inclusivemax) {
-                        if (number > this.max) {
+                    if (this.inclusiveMax) {
+                        if (number > this.max + offsetMin) {
                             withinRange = false;
                         }
                     }
                     else {
-                        if (number >= this.max) {
+                        if (number >= this.max + offsetMin) {
+                            withinRange = false;
+                        }
+                    }
+                    return withinRange;
+                }
+                /** @param {Number} offsetMin @param {Number} offsetMax */
+                randomWithinRange(offsetMin, offsetMax) {
+                    return randomNumber(this.min + offsetMin, this.max + offsetMax);
+                }
+                /** @param {NumberRange} range @param {Number} number @param {Boolean} inclusiveMin @param {Boolean} inclusiveMax    */
+                static betweenRange(range, number = 0, inclusiveMin = true, inclusiveMax = true) {
+                    let withinRange = true;
+                    if (inclusiveMin) {
+                        if (number < range.min) {
+                            withinRange = false;
+                        }
+                    }
+                    else {
+                        if (number <= range.min) {
+                            withinRange = false;
+                        }
+                    }
+                    if (inclusiveMax) {
+                        if (number > range.max) {
+                            withinRange = false;
+                        }
+                    }
+                    else {
+                        if (number >= range.max) {
                             withinRange = false;
                         }
                     }
                     return withinRange;
                 }
             }
+            class Item {
+                /** @param {Number} itemVolume @param {String} itemName */
+                constructor(itemVolume, itemName) {
+                    this.volume = itemVolume;
+                    this.name = itemName;
+                }
+                /** @param {Number} amount */
+                inventoryPush(amount) {
+                    playerData.inventory.addItem(this.name, amount);
+                }
+            }
+            class MapComponent {
+                /** @param {Number} x @param {Number} y */
+                constructor(x, y) {
+                    this.coordinates = new Vector2(x, y);
+                }
+                /** @param {Number} x @param {Number} y */
+                shiftLocation(x, y) {
+                    this.coordinates.x += x;
+                    this.coordinates.y += y;
+                }
+            }
+            class Material extends Item {
+                /** @param {Number} materialVolume @param {String} materialName @param {Number} basePrevalence @param {String[]} biomes */
+                constructor(materialVolume, materialName, basePrevalence, biomes = ['all']) {
+                    super(materialVolume, materialName);
+                    this.basePrevalence = basePrevalence;
+                    this.biomes = biomes;
+                }
+            }
+            //materials
+            const MATERIALS_1 = [new Material(2, 'stone', 2), new Material(1, 'wood', 2), new Material(1, 'clay', 1, ['plains', 'forest']), new Material(1, 'plants', 2, ['plains', 'forest'])];
+            class CraftableItem extends Item {
+                /** @param {Number} itemVolume @param {String} itemName @param {Object[]} costs @param {String} costs[].item @param {Number} costs[].amount @param {Number} multiplier */
+                constructor(itemVolume, itemName, costs, multiplier = 1/*, tier */) {
+                    super(itemVolume, itemName);
+                    this.costs = costs;
+                    this.craftMultiplier = multiplier;
+                    //this.craftingTier = tier;
+                }
+            }
+            class Tool extends CraftableItem {
+                #hasBeenUsed = false;
+                /** @param {Number} toolVolume @param {String} toolName @param {Object[]} costs @param {String} costs[].item @param {Number} costs[].amount @param {Object} miningPerks @param {Number} miningPerks.speed @param {Number} miningPerks.returns @param {Number} miningPerks.tier*/
+                constructor(toolVolume, toolName, costs, miningPerks) {
+                    super(toolVolume, toolName, costs);
+                    this.perks = {
+                        mining: miningPerks,
+                    }
+                }
+                perksPush() {
+                    this.#hasBeenUsed = true;
+                    playerData.perks.mining.returns *= this.perks.mining.returns;
+                    playerData.perks.mining.speed *= this.perks.mining.speed;
+                    playerData.perks.mining.tier = this.perks.mining.tier > playerData.perks.mining.speed ? this.perks.mining.tier : playerData.perks.mining.tier;
+                }
+                isUsed() {
+                    return this.#hasBeenUsed;
+                }
+            }
+            class MapTile extends MapComponent {
+                /** @param {Number} x @param {Number} y @param {String} biome @param {Number[]} prevalenceOffset */
+                constructor(x = 0, y = 0, biome, prevalenceOffset) {
+                    super(x, y);
+                    this.biome = biome;
+                    /** @type {Object.<string, Number>} */
+                    this.prevalences = {}
+                    this.#offsetInit(prevalenceOffset);
+                }
+                /** @param {Number[]} offsets */
+                #offsetInit(offsets) {
+                    for (let i = 0; i < offsets.length; i++) {
+                        this.prevalences[MATERIALS_1[i].name] = MATERIALS_1[i].basePrevalence + offsets[i];
+                    }
+                }
+            }
+            class MapBuilding extends MapComponent {
+                constructor(x = 0, y = 0, buildingName = 'lorkbench', costItems = ['lorematerial'], costAmounts = [3], tier = 1, materials = ['all']) {
+                    super(x, y);
+                    this.name = buildingName;
+                    this.materials = materials
+                    this.tier = tier;
+                    this.costItems = costItems;
+                    this.costAmounts = costAmounts;
+                }
+            }
         </script>
         <!-- functions -->
         <script>
-            function ElementID(id) { return document.getElementById(id); }
-            function DoesExist(value) { return value == undefined ? false : true; }
-            function RandomNumber(min = 0, max = 1) { min = Math.ceil(min); max = Math.floor(max); return Math.round(Math.random() * (max - min) + min); }
-            function IsDigit(string = '0') {const digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']; const chars = string.split(''); for (let i = 0; i < chars.length; i++) {const char = chars[i]; if (!digits.includes(char)) {return false;}} return true;}
+            const EM = {
+                /** @param {String} id */
+                elementID: function (id) { return document.getElementById(id); },
+                /** @param {String} classname */
+                elementsClass: function (classname) { return document.getElementsByClassName(classname); },
+                /** @param {HTMLElement} element */
+                elementText: function (element, text) { element.innerHTML = text; }
+            }
+            function doesExist(value) { return value == undefined ? false : true; }
+            function randomNumber(min = 0, max = 1) { min = Math.ceil(min); max = Math.floor(max); return Math.round(Math.random() * (max - min) + min); }
+            function isDigit(string = '0') { const digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']; const chars = string.split(''); for (let i = 0; i < chars.length; i++) { const char = chars[i]; if (!digits.includes(char)) { return false; } } return true; }
         </script>
         <!-- data storage -->
         <script>
             //error constants
-                //playerdata
-                const ERROR_NOITEM = -1;
-                const ERROR_NOTENOUGHITEM = -2;
-                const ERROR_ = -3;
+            //playerdata
+            //inventory
+            const ERROR_NOITEM = -1;
+            const ERROR_NOTENOUGHITEM = -2;
+            const ERROR_NOTENOUGHSPACE = -3
             // parser constants
             const PARSER_NONE = 0;
             const PARSER_MOVEONMAP = 1;
             const PARSER_MINEAREA = 2;
             const PARSER_CRAFT = 3;
-            //craftable perks
-            const PERKS_1 = ['stone tools'];
-            const PERKS_1B = [{mining: {speed: 1.1, returns: 1.05, tier: 0}}, {mining: {speed: 0, returns: 0, tier: 0}}];
             //items
-            const ITEMS_1 = ['wood planks', 'stone chunks', 'stone tools'];
-            const ITEMS_1C = [[0, 1, 0], [2, 0, 0], [6, 3, 0]];
-            //upgrades
-                //t1 upgrades
-                /* const UPGRADES_1 = ['sharpened stone tools'];
-                const UPGRADES_1C = [[{item: 'stone chunks', amount: 4}, {item: 'wood', amount: 3}]]; */
-        </script>
-    </div>
-    <!-- cosmetic scripts -->
-    <div>
-        <script>
-            ElementID('motctitle').innerHTML = 'MOTC 0.2';
-            ElementID('motctext1').innerHTML = 'crafting system implemented';
-            ElementID('motctext2').innerHTML = 'will remake the mining system (for the 3rd time) in 0.2.1 to be less random but not too set because the current mining system is too buggy';
-            ElementID('motctext3').innerHTML = 'you can make flint tools which multiplicatively increase how fast you mine using the craft command but theres a limit (also this function will be replaced with upgrading tools in 0.2.1)';
-            ElementID('motctitle').style = 'line-height: 6px; font-size: 16px';
-            ElementID('motctext1').style = 'line-height: 4px; font-size: 12px;';
-            ElementID('motctext2').style = 'line-height: 4px; font-size: 12px;';
-            ElementID('motctext3').style = 'line-height: 4px; font-size: 12px;';
+            /** @type {Array.<CraftableItem|Tool>} */
+            const ITEMS_1 = [new CraftableItem(1, 'wood planks', [{ item: 'wood', amount: 1 }], 2), new CraftableItem(2, 'stone chunks', [{ item: 'stone', amount: 2 }]), new Tool(5, 'stone tools', [{ item: 'stone', amount: 6 }, { item: 'wood', amount: 3 }], { returns: 1, speed: 1.2, tier: 0 })];
         </script>
     </div>
     <!-- functional scripts -->
@@ -220,20 +275,26 @@
             let playerData = {
                 lastInput: '',
                 doingAction: false,
-                location: new Vector2(RandomNumber(-99, 99), RandomNumber(-99, 99)),
+                location: {
+                    vector: new Vector2(randomNumber(-99, 99), randomNumber(-99, 99)),
+                    getCoords: function () {
+                        return `x${String(this.vector.x)}y${String(this.vector.y)}`;
+                    }
+                },
                 materials: {
                     wood: 0,
                     stone: 0,
                     clay: 0
                 },
                 inventory: {
-                    maxvolume: 10,
+                    maxvolume: 250,
                     volume: 0,
                     /** @type {Array.<String>} */
                     list: [],
                     /** @type {Array.<Number>} */
                     listamounts: [],
-                    addItem: function(item = 'lorem', amount = 1) {
+                    /**  @param {String} item */
+                    addItem: function (item, amount = 1) {
                         if (this.list.includes(item)) {
                             this.listamounts[this.list.indexOf(item)] += amount;
                         }
@@ -242,7 +303,8 @@
                             this.listamounts.push(amount);
                         }
                     },
-                    removeItem: function(item = 'lorem', amount = 1) {
+                    /** @param {String} item */
+                    removeItem: function (item, amount = 1) {
                         if (this.list.includes(item)) {
                             if (this.listamounts[this.list.indexOf(item)] < amount) {
                                 return ERROR_NOTENOUGHITEM;
@@ -252,13 +314,17 @@
                                     this.listamounts.splice(this.list.indexOf(item), 1);
                                     this.list.splice(this.list.indexOf(item), 1);
                                 }
+                                else {
+                                    this.listamounts[this.list.indexOf(item)] -= amount;
+                                }
                             }
                         }
                         else {
                             return ERROR_NOITEM;
                         }
                     },
-                    getItemAmount: function(item = 'lorem') {
+                    /** @param {String} item */
+                    getItemAmount: function (item) {
                         return this.list.includes(item) ? this.listamounts[this.list.indexOf(item)] : ERROR_NOITEM;
                     }
                 },
@@ -266,56 +332,66 @@
                     mining: {
                         speed: 1,
                         returns: 0,
-                        tier: 0                     
+                        tier: 0
                     }
                 }
             }
-
             let parserKey = PARSER_NONE;
-
-            ElementID('consoleinput').addEventListener("keydown", (e) => {
+            EM.elementID('submit').addEventListener("click", (e) => {
+                inputParser(EM.elementID('consoleinput').value);
+                EM.elementID('submit').animate([
+                    { backgroundColor: '#424242' },
+                    { backgroundColor: '#212121' },
+                    { backgroundColor: '#424242' }
+                ], {
+                    duration: 100,
+                    easing: "ease-out"
+                })
+            })
+            EM.elementID('consoleinput').addEventListener("keydown", (e) => {
                 if (e.key == 'Enter') {
-                    inputParser(e);
+                    inputParser(e.target.value);
                 }
                 if (e.key == 'ArrowUp') {
                     e.target.value = playerData.lastInput;
                 }
             });
-
-            function inputParser(e = new KeyboardEvent('keypress')) {
-                function updateText(input = 'lorem', console = 1) {
-                    const whichconsole = console == 1 ? '' : 'e';
+            /**  @param {String} value */
+            function inputParser(value) {
+                /** @param {String} input */
+                function updateText(input, cons = 1) {
+                    const whichconsole = cons == 1 ? '' : 'e';
                     for (let i = 1; i < 11; i++) {
-                        ElementID('console' + whichconsole + String(i)).innerHTML = ElementID('console' + String(i + 1)).innerHTML;
+                        EM.elementID('console' + whichconsole + String(i)).innerHTML = EM.elementID('console' + String(i + 1)).innerHTML;
                     }
-                    ElementID('console11').innerHTML = '> ' + input;
+                    EM.elementID('console11').innerHTML = '> ' + input;
                 }
-                function updateLine(input = 'lorem', line = 1, console = 1) {
-                    const whichconsole = console == 1 ? '' : 'e';
-                    ElementID('console' + whichconsole + String(line)).innerHTML = '> ' + text; 
+                function updateLine(input = 'lorem', line = 1, cons = 1) {
+                    const whichconsole = cons == 1 ? '' : 'e';
+                    EM.elementID('console' + whichconsole + String(line)).innerHTML = '> ' + input;
                 }
-                let text = e.target.value;
+                let text = value;
                 playerData.lastInput = text;
-                e.target.value = '';
+                EM.elementID('consoleinput').value = '';
                 updateText(text);
                 if (text == 'location' && parserKey == PARSER_NONE) {
-                    updateText('you are at x: ' + String(playerData.location.x) + ' y: ' + String(playerData.location.y));
-                    updateText('your biome is ' + map['x' + String(playerData.location.x) + 'y' + String(playerData.location.y)].biome);
+                    updateText(`you are at x: ${String(playerData.location.vector.x)} y: ${String(playerData.location.vector.y)}`);
+                    updateText(`your biome is ${map[`x${String(playerData.location.vector.x)}y${String(playerData.location.vector.y)}`].biome}`);
                 }
                 if ((text == 'move' && parserKey == PARSER_NONE) || parserKey == PARSER_MOVEONMAP) {
                     if (parserKey == PARSER_MOVEONMAP) {
                         let coords = playerData.location;
                         if (text == 'up') {
-                            playerData.location.y += 1;
+                            playerData.location.vector.y += 1;
                         }
                         else if (text == 'down') {
-                            playerData.location.y -= 1;
+                            playerData.location.vector.y -= 1;
                         }
                         else if (text == 'left') {
-                            playerData.location.x -= 1;
+                            playerData.location.vector.x -= 1;
                         }
                         else if (text == 'right') {
-                            playerData.location.x += 1;
+                            playerData.location.vector.x += 1;
                         }
                         parserKey = PARSER_NONE;
                     }
@@ -328,7 +404,7 @@
                     if (!playerData.doingAction) {
                         if (parserKey == PARSER_MINEAREA) {
                             let input = 0;
-                            if (!IsDigit(text)) {
+                            if (!isDigit(text)) {
                                 input = 1;
                             }
                             else {
@@ -337,57 +413,62 @@
                             if (input > 60) {
                                 input = 60;
                             }
-                            let coords = playerData.location;
                             /** @type {MapTile} */
-                            let tile = map['x' + coords.x + 'y' + coords.y];
-                            let prevalence = tile.prevalencesum;
-                            let prevalences = tile.prevalence;
-                            let materialoutput = [0, 0, 0];
-                            for (let i = 0; (i < Number(input) || materialoutput[0] + materialoutput[1] + materialoutput[2] != Number(input)); i++) {
-                                if (i > 75) {break;}
-                                const random = RandomNumber(1, prevalence);
-                                for (let o = 0; o < prevalences.stone; o++) {
-                                    if (RandomNumber(1, prevalence) == prevalence) {
-                                        materialoutput[0]++;
+                            const tile = map[playerData.location.getCoords()];
+                            /** @type {String[]} */
+                            let materialOutput = [];
+                            /** @type {Number[]} */
+                            let materialAmount = [];
+                            /** @type {String[]} */
+                            const locationbiome = tile.biome;
+                            let availableMaterials = MATERIALS_1.filter((value) => { return value.biomes.includes('all') || value.biomes.includes(locationbiome) })
+                            let total = 0;
+                            /** @type {Number[]} */
+                            let prevalences = [];
+                            for (let i = 0; i < availableMaterials.length; i++) {
+                                total += map[playerData.location.getCoords()].prevalences[availableMaterials[i].name];
+                                prevalences.push(map[playerData.location.getCoords()].prevalences[availableMaterials[i].name]);
+                            }
+                            for (let i = 0; i < input; i++) {
+                                let start = 0;
+                                const RN = randomNumber(0, total);
+                                for (let o = 0; o < availableMaterials.length; o++) {
+                                    const material = availableMaterials[o];
+                                    if (NumberRange.betweenRange(new NumberRange(start, start + prevalences[o]), RN, true, o == availableMaterials.length - 1 ? true : false)) {
+                                        if (!materialOutput.includes(material.name)) {
+                                            materialOutput.push(material.name);
+                                            materialAmount.push(1);
+                                        }
+                                        else {
+                                            materialAmount[materialOutput.indexOf(material.name)] += 1;
+                                        }
                                     }
-                                }
-                                for (let o = 0; o < prevalences.wood; o++) {
-                                    if (RandomNumber(1, prevalence) == prevalence) {
-                                        materialoutput[1]++;
-                                    }
-                                }
-                                for (let o = 0; o < prevalences.clay; o++) {
-                                    if (RandomNumber(1, prevalence) == prevalence) {
-                                        materialoutput[2]++;
-                                    }
+                                    start += prevalences[o];
                                 }
                             }
+                            /** @type {Object} */
                             updateText('');
-                            ElementID('consolee1').innerHTML = '> []';
+                            EM.elementID('consolee1').innerHTML = '> []';
                             playerData.doingAction = true;
-                            setTimeout(() => {ElementID('consolee1').innerHTML = '> [-]';}, 100 * Number(input) / playerData.perks.mining.speed);
-                            setTimeout(() => {ElementID('consolee1').innerHTML = '> [--]';}, 200 * Number(input) / playerData.perks.mining.speed);
-                            setTimeout(() => {ElementID('consolee1').innerHTML = '> [---]';}, 300 * Number(input) / playerData.perks.mining.speed);
-                            setTimeout(() => {ElementID('consolee1').innerHTML = '> [----]';}, 400 * Number(input) / playerData.perks.mining.speed);
-                            setTimeout(() => {ElementID('consolee1').innerHTML = '> [-----]';}, 500 * Number(input) / playerData.perks.mining.speed);
-                            setTimeout(() => {ElementID('consolee1').innerHTML = '> [------]';}, 600 * Number(input) / playerData.perks.mining.speed);
-                            setTimeout(() => {ElementID('consolee1').innerHTML = '> [-------]';}, 700 * Number(input) / playerData.perks.mining.speed);
-                            setTimeout(() => {ElementID('consolee1').innerHTML = '> [--------]';}, 800 * Number(input) / playerData.perks.mining.speed);
-                            setTimeout(() => {ElementID('consolee1').innerHTML = '> [---------]';}, 900 * Number(input) / playerData.perks.mining.speed);
-                            setTimeout(() => {ElementID('consolee1').innerHTML = '> [Mining Done]'; playerData.doingAction = false;}, 1000 * Number(input) / playerData.perks.mining.speed);
-                            setTimeout(() => {updateText('you got ' + materialoutput[0] + ' stone, ' + materialoutput[1] + ' wood, and ' + materialoutput[2] + ' clay');}, ((1000 * input) + 1) / playerData.perks.mining.speed);
+                            setTimeout(() => { EM.elementID('consolee1').innerHTML = '> [-]'; }, 100 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => { EM.elementID('consolee1').innerHTML = '> [--]'; }, 200 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => { EM.elementID('consolee1').innerHTML = '> [---]'; }, 300 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => { EM.elementID('consolee1').innerHTML = '> [----]'; }, 400 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => { EM.elementID('consolee1').innerHTML = '> [-----]'; }, 500 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => { EM.elementID('consolee1').innerHTML = '> [------]'; }, 600 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => { EM.elementID('consolee1').innerHTML = '> [-------]'; }, 700 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => { EM.elementID('consolee1').innerHTML = '> [--------]'; }, 800 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => { EM.elementID('consolee1').innerHTML = '> [---------]'; }, 900 * Number(input) / playerData.perks.mining.speed);
+                            setTimeout(() => { EM.elementID('consolee1').innerHTML = '> [Mining Done]'; playerData.doingAction = false; }, 1000 * Number(input) / playerData.perks.mining.speed);
                             let inventory = playerData.inventory;
                             setTimeout(() => {
-                                if (materialoutput[0] > 0) {
-                                    playerData.inventory.addItem('stone', materialoutput[0]);
+                                updateLine('you got egg', 1, 1);
+                                for (let a = 0; a < materialOutput.length; a++) {
+                                    const element = materialOutput[a];
+                                    const elemen = materialAmount[a];
+                                    playerData.inventory.addItem(element, elemen);
                                 }
-                                if (materialoutput[1] > 0) {
-                                    playerData.inventory.addItem('wood', materialoutput[1]);
-                                }
-                                if (materialoutput[2] > 0) {
-                                    playerData.inventory.addItem('clay', materialoutput[2]);
-                                }
-                            }, 1001 );
+                            }, (1000 * Number(input) / playerData.perks.mining.speed) + 1);
                             parserKey = PARSER_NONE;
                         }
                         else {
@@ -410,53 +491,55 @@
                         const item = playerData.inventory.list[i];
                         const amount = playerData.inventory.listamounts[i];
                         if (i == playerData.inventory.list.length - 1 && playerData.inventory.list.length >= 3) {
-                            string = string + 'and ' + amount + ' ' + item;
+                            string = `${string} ${amount} ${item}`;
                         }
                         else if (i != playerData.inventory.list.length - 1 && playerData.inventory.list.length >= 3) {
-                            string = string + amount + ' ' + item + ', '
+                            string = `${string} ${amount} ${item}, `
                         }
                         else if (i == 1 && playerData.inventory.list.length == 2) {
-                            string = string + 'and ' + amount + ' ' + item;
+                            string = `${string} and ${amount} ${item}`;
                         }
                         else if (i == 0 && playerData.inventory.list.length == 2) {
-                            string = string + ' ' + amount + ' ' + item + ' ';
+                            string = `${string} ${amount} ${item} `;
                         }
+                        else if (i == 0 && playerData.inventory.list.length == 1) {
+                            string = `${string} ${amount} ${item}`;
+                        }
+                    }
+                    if (playerData.inventory.list.length == 0) {
+                        string = 'you have nothing';
                     }
                     updateText(string);
                 }
                 if ((text == 'craft' && parserKey == PARSER_NONE) || parserKey == PARSER_CRAFT) {
                     if (parserKey == PARSER_CRAFT) {
-                        let enoughMaterials = 0;
-                        const index = ITEMS_1.indexOf(text);
+                        const index = ITEMS_1.findIndex((value) => { return value.name == text });
+                        let mats = 0;
                         if (index != -1) {
-                            const stoneAmount = playerData.inventory.getItemAmount('stone');
-                            if (stoneAmount != -1 && ITEMS_1C[index][0] <= stoneAmount) {
-                                playerData.inventory.removeItem('stone', ITEMS_1C[index][0]);
-                                enoughMaterials += 1;
+                            for (let i = 0; i < ITEMS_1[index].costs.length; i++) {
+                                const remove = playerData.inventory.removeItem(ITEMS_1[index].costs[i].item, ITEMS_1[index].costs[i].amount);
+                                if (remove == ERROR_NOITEM) {
+                                    updateText(`you don't have any ${ITEMS_1[index].costs[i].item}, you need ${ITEMS_1[index].costs[i].amount}`);
+                                }
+                                else if (remove == ERROR_NOTENOUGHITEM) {
+                                    updateText(`you don't have enough ${ITEMS_1[index].costs[i].item}, you need ${ITEMS_1[index].costs[i].amount - playerData.inventory.getItemAmount(ITEMS_1[index].costs[i].item)} more`)
+                                }
+                                else {
+                                    mats++;
+                                }
                             }
-                            const woodAmount = playerData.inventory.getItemAmount('wood');
-                            if (woodAmount != -1 && ITEMS_1C[index][0] <= woodAmount) {
-                                playerData.inventory.removeItem('wood', ITEMS_1C[index][1]);
-                                enoughMaterials += 1;
+                            if (mats == ITEMS_1[index].costs.length) {
+                                playerData.inventory.addItem(ITEMS_1[index].name, ITEMS_1[index].craftMultiplier);
                             }
-                            const clayAmount = playerData.inventory.getItemAmount('stone');
-                            if (clayAmount != -1 && ITEMS_1C[index][0] <= clayAmount) {
-                                playerData.inventory.removeItem('clay', ITEMS_1C[index][2]);
-                                enoughMaterials += 1;
-                            }
-                        }
-                        if (enoughMaterials == 3) {
-                            if (playerData.inventory.list.includes(ITEMS_1[index])) {
-                                playerData.inventory.listamounts[playerData.inventory.list.indexOf(ITEMS_1[index])] += 1;
-                            }
-                            else {
-                                playerData.inventory.list.push(ITEMS_1[index]);
-                                playerData.inventory.listamounts.push(1);
-                            }
-                            if (PERKS_1.includes(text) && playerData.inventory.getItemAmount(text) < 10) {
-                                playerData.perks.mining.speed *= PERKS_1B[PERKS_1.indexOf(text)].mining.speed;
+                            if (typeof ITEMS_1[index].perksPush === "function" && !(ITEMS_1[index].isUsed())) {
+                                ITEMS_1[index].perksPush();
                             }
                         }
+                        /*
+                        costs are an array of objects with the properties item and amount
+                        item is the name of the item needed to craft
+                        amount is the amount of the item needed to craft
+                        */
                         parserKey = PARSER_NONE;
                     }
                     else {
@@ -464,44 +547,70 @@
                         parserKey = PARSER_CRAFT;
                     }
                 }
+                if (text == 'recipes' && parserKey == PARSER_NONE) {
+                    ITEMS_1.forEach((value) => {
+                        let string = `${value.name} costs:`
+                        value.costs.forEach((valueb, index) => {
+                            if (true) {
+                                string = `${string} ${valueb.amount} ${valueb.item}`
+                            } 
+                        })
+                        updateText(string);
+                    });
+                }
+                if (text == 'tset') {
+                    MATERIALS_1.forEach((value) => {
+                        playerData.inventory.addItem(value.name, 999)
+                    });
+                    console.log(String(playerData.perks.mining.speed));
+                }
             }
         </script>
         <script>
-            let map = {
-                totalTiles: 0
-            }
-            setInterval(() => {
-                if (!map.hasOwnProperty('x' + String(playerData.location.x) + 'y' + String(playerData.location.y))) {
-                    let prevalence = [];
-                    let biome = '';
-                    switch (RandomNumber(1, 5)) {
-                        /*a prevalence value divided by the sum of all 3 prevalence values times 
-                        100 is about how many of a material you get per 100 resources */
-                        case 1:
-                            prevalence = [[2, 3], [1, 2], [2, 2]];
-                            biome = 'plains';
-                            break;
-                        case 2:
-                            prevalence = [[2, 2], [0, 1], [2, 2]];
-                            biome = 'plains';
-                            break;
-                        case 3:
-                            prevalence = [[0, 2], [1, 3], [1, 1]];
-                            biome = 'desert';
-                            break;
-                        case 4:
-                            prevalence = [[3, 4], [1, 1], [1, 2]];
-                            biome = 'forest';
-                            break;
-                        case 5:
-                            prevalence = [[1, 1], [3, 5], [1, 1]];
-                            biome = 'mountain';
-                            break;
+            /** @type {Object.<string, MapTile>} */
+            let map = {};
+            {
+                let chosen = false;
+                setInterval(() => {
+                    if (!map.hasOwnProperty(playerData.location.getCoords())) {
+                        let prevalenceOffset = [];
+                        let biome = '';
+                        const number = randomNumber(1, 5);
+                        chosen = true;
+                        if (chosen) {
+                            switch (number) {
+                                /*a prevalence value divided by the sum of all 3 prevalence values times 
+                                100 is about how many of a material you get per 100 resources */
+                                case 1:
+                                    prevalenceOffset = [[1, 2], [-1, 0], [0, 1], [0, 1]];
+                                    biome = 'plains';
+                                    break;
+                                case 2:
+                                    prevalenceOffset = [[1, 2], [1, 1], [0, 1], [1, 2]];
+                                    biome = 'plains';
+                                    break;
+                                case 3:
+                                    prevalenceOffset = [[0, 0], [-1, 0], [0, 0], [0, 0]];
+                                    biome = 'desert';
+                                    break;
+                                case 4:
+                                    prevalenceOffset = [[1, 1], [2, 3], [0, 0], [2, 2]];
+                                    biome = 'forest';
+                                    break;
+                                case 5:
+                                    prevalenceOffset = [[2, 3], [-1, -1], [0, 0], [0, 0]];
+                                    biome = 'mountain';
+                                    break;
+                            }
+                        }
+                        let name = `x${String(playerData.location.vector.x)}y${String(playerData.location.vector.y)}`;
+                        if (!map.hasOwnProperty(playerData.location.getCoords())) {
+                            map[name] = new MapTile(playerData.location.vector.x, playerData.location.vector.y, biome, [randomNumber(prevalenceOffset[0][0], prevalenceOffset[0][1]), randomNumber(prevalenceOffset[1][0], prevalenceOffset[1][1]), randomNumber(prevalenceOffset[2][0], prevalenceOffset[2][1]), randomNumber(prevalenceOffset[3][0], prevalenceOffset[3][1])]);
+                        }
+                        chosen = false;
                     }
-                    let name = 'x' + String(playerData.location.x) + 'y' + String(playerData.location.y);
-                    map[name] = new MapTile(playerData.location.x, playerData.location.y, biome, [RandomNumber(prevalence[0][0], prevalence[0][1]), RandomNumber(prevalence[1][0], prevalence[1][1]), RandomNumber(prevalence[2][0], prevalence[2][1])]);
-                }
-            }, 100);
+                }, 100);
+            }  
         </script>
     </div>
     <footer>
