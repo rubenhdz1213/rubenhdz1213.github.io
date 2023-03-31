@@ -14,11 +14,11 @@
     <div id="motc">
         <h1>Mineral Madness</h1>
         <!-- <p style="font-size: 0.85vw; color: red;" id="motcu">"U" before a version means it is unstable and/or unusable, while the number after the "U" tells you what is the current unstable build of that version*</p> -->
-        <h3 id="motctitle" style="line-height: 6px; font-size: 16px">MOTC <!-- <divisor style="color: red">U4*</divisor> --> 0.3
+        <h3 id="motctitle" style="line-height: 6px; font-size: 16px">MOTC <!-- <divisor style="color: red">U4*</divisor> --> 0.3.1
         </h3>
-        <p id="motctext1" style="line-height: 1px; font-size: 12px">crafting system remade and a list of craftable items has been added</p>
-        <p id="motctext2" style="line-height: 4px; font-size: 12px;"> ill attempt to add selling by 0.3.1</p>
-        <p id="motctext3" style="font-size: 12px; line-height: 4px;">made a lot of classes for readability and quicker implementation, as well as basically the entire game being modular now</p>
+        <p id="motctext1" style="line-height: 1px; font-size: 12px">you can get coins from selling things but you cant do anything with those coins</p>
+        <p id="motctext2" style="line-height: 4px; font-size: 12px;">0.4 will probably add further refining of materials and items and polish the selling system</p>
+        <p id="motctext3" style="font-size: 12px; line-height: 4px;">0.5 will add villages that you cant mine in unless you pay a small fee to mine x times</p>
         <!-- <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext1">recipes command exists</p>
         <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext2">crafting is fixed but perks from tools dont exist yet</p>
         <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext3">there is now a cool looking submit button for mobile and stuff as well as a better looking input</p> -->
@@ -151,10 +151,11 @@
                 }
             }
             class Item {
-                /** @param {Number} itemVolume @param {String} itemName */
-                constructor(itemVolume, itemName) {
+                /** @param {Number} itemVolume @param {String} itemName @param {Number} cost */
+                constructor(itemVolume, itemName, cost) {
                     this.volume = itemVolume;
                     this.name = itemName;
+                    this.sellValue = cost;
                 }
                 /** @param {Number} amount */
                 inventoryPush(amount) {
@@ -173,19 +174,19 @@
                 }
             }
             class Material extends Item {
-                /** @param {Number} materialVolume @param {String} materialName @param {Number} basePrevalence @param {String[]} biomes */
-                constructor(materialVolume, materialName, basePrevalence, biomes = ['all']) {
-                    super(materialVolume, materialName);
+                /** @param {Number} materialVolume @param {String} materialName @param {Number} basePrevalence @param {String[]} biomes @param {Number} cost*/
+                constructor(materialVolume, materialName, basePrevalence, biomes = ['all'], cost) {
+                    super(materialVolume, materialName, cost);
                     this.basePrevalence = basePrevalence;
                     this.biomes = biomes;
                 }
             }
             //materials
-            const MATERIALS_1 = [new Material(2, 'stone', 2), new Material(1, 'wood', 2), new Material(1, 'clay', 1, ['plains', 'forest']), new Material(1, 'plants', 2, ['plains', 'forest'])];
+            const MATERIALS_1 = [new Material(2, 'stone', 2, undefined, 1), new Material(1, 'wood', 2, undefined, 1), new Material(1, 'clay', 1, ['plains', 'forest'], 1), new Material(1, 'plants', 2, ['plains', 'forest'], 1)];
             class CraftableItem extends Item {
-                /** @param {Number} itemVolume @param {String} itemName @param {Object[]} costs @param {String} costs[].item @param {Number} costs[].amount @param {Number} multiplier */
-                constructor(itemVolume, itemName, costs, multiplier = 1/*, tier */) {
-                    super(itemVolume, itemName);
+                /** @param {Number} itemVolume @param {String} itemName @param {Object[]} costs @param {String} costs[].item @param {Number} costs[].amount @param {Number} multiplier @param {Number} sellValue*/
+                constructor(itemVolume, itemName, costs, multiplier = 1, sellValue/*, tier */) {
+                    super(itemVolume, itemName, sellValue);
                     this.costs = costs;
                     this.craftMultiplier = multiplier;
                     //this.craftingTier = tier;
@@ -194,8 +195,8 @@
             class Tool extends CraftableItem {
                 #hasBeenUsed = false;
                 /** @param {Number} toolVolume @param {String} toolName @param {Object[]} costs @param {String} costs[].item @param {Number} costs[].amount @param {Object} miningPerks @param {Number} miningPerks.speed @param {Number} miningPerks.returns @param {Number} miningPerks.tier*/
-                constructor(toolVolume, toolName, costs, miningPerks) {
-                    super(toolVolume, toolName, costs);
+                constructor(toolVolume, toolName, costs, miningPerks, sellValue) {
+                    super(toolVolume, toolName, costs, sellValue);
                     this.perks = {
                         mining: miningPerks,
                     }
@@ -264,15 +265,18 @@
             const PARSER_MOVEONMAP = 1;
             const PARSER_MINEAREA = 2;
             const PARSER_CRAFT = 3;
+            const PARSER_SELL = 4;
+            const PARSER_SELLAMOUNT = 5;
             //items
             /** @type {Array.<CraftableItem|Tool>} */
-            const ITEMS_1 = [new CraftableItem(1, 'wood planks', [{ item: 'wood', amount: 1 }], 2), new CraftableItem(2, 'stone chunks', [{ item: 'stone', amount: 2 }]), new Tool(5, 'stone tools', [{ item: 'stone', amount: 6 }, { item: 'wood', amount: 3 }], { returns: 1, speed: 1.2, tier: 0 })];
+            const ITEMS_1 = [new CraftableItem(1, 'wood planks', [{ item: 'wood', amount: 1 }], 2, 1), new CraftableItem(2, 'stone chunks', [{ item: 'stone', amount: 2 }], undefined, 3), new Tool(5, 'stone tools', [{ item: 'stone', amount: 6 }, { item: 'wood', amount: 3 }], { returns: 1, speed: 1.2, tier: 0 }, 12)];
         </script>
     </div>
     <!-- functional scripts -->
     <div>
         <script>
             let playerData = {
+                tempStorage: '',
                 lastInput: '',
                 doingAction: false,
                 location: {
@@ -340,12 +344,12 @@
             EM.elementID('submit').addEventListener("click", (e) => {
                 inputParser(EM.elementID('consoleinput').value);
                 EM.elementID('submit').animate([
-                    { backgroundColor: '#424242' },
-                    { backgroundColor: '#212121' },
-                    { backgroundColor: '#424242' }
+                    { backgroundColor: '#424242', color: '#ffffff' },
+                    { backgroundColor: '#212121', color: '#999999' },
+                    { backgroundColor: '#424242', color: '#ffffff' }
                 ], {
-                    duration: 100,
-                    easing: "ease-out"
+                    duration: 150,
+                    easing: "ease-in"
                 })
             })
             EM.elementID('consoleinput').addEventListener("keydown", (e) => {
@@ -447,7 +451,6 @@
                                 }
                             }
                             /** @type {Object} */
-                            updateText('');
                             EM.elementID('consolee1').innerHTML = '> []';
                             playerData.doingAction = true;
                             setTimeout(() => { EM.elementID('consolee1').innerHTML = '> [-]'; }, 100 * Number(input) / playerData.perks.mining.speed);
@@ -462,7 +465,11 @@
                             setTimeout(() => { EM.elementID('consolee1').innerHTML = '> [Mining Done]'; playerData.doingAction = false; }, 1000 * Number(input) / playerData.perks.mining.speed);
                             let inventory = playerData.inventory;
                             setTimeout(() => {
-                                updateLine('you got egg', 1, 1);
+                                let string = '';
+                                for (let a = 0; a < materialOutput.length; a++) {
+                                    string = `${string}${materialAmount[a]} ${materialOutput[a]} `
+                                }
+                                updateLine(`you got ${string}`, 2, 2);
                                 for (let a = 0; a < materialOutput.length; a++) {
                                     const element = materialOutput[a];
                                     const elemen = materialAmount[a];
@@ -558,12 +565,54 @@
                         updateText(string);
                     });
                 }
-                if (text == 'tset') {
-                    MATERIALS_1.forEach((value) => {
-                        playerData.inventory.addItem(value.name, 999)
-                    });
-                    console.log(String(playerData.perks.mining.speed));
+                if ((text == 'sell' && parserKey == PARSER_NONE) || (parserKey == PARSER_SELL) || (parserKey == PARSER_SELLAMOUNT)) {
+                    if (parserKey == PARSER_SELL) {
+                        if (text == 'cancel') {
+                            parserKey = PARSER_NONE;
+                        }
+                        else {
+                            const exists = playerData.inventory.list.includes(text);
+                            if (exists) {
+                                playerData.tempStorage = text;
+                                updateText(`input how many to sell, you have ${playerData.inventory.getItemAmount(text)} ${text}`)
+                            }
+                            parserKey = PARSER_SELLAMOUNT;
+                        }
+                    }
+                    else if (parserKey == PARSER_SELLAMOUNT) {
+                        const mat = MATERIALS_1.filter((value) => { return value.name == playerData.tempStorage })[0];
+                        const item = ITEMS_1.filter((value) => { return value.name == playerData.tempStorage })[0];
+                        if (typeof mat !== "undefined" && playerData.inventory.getItemAmount(mat.name)) {
+                            const enoughmat = playerData.inventory.removeItem(mat.name, Number(text));
+                            if (enoughmat != ERROR_NOTENOUGHITEM) {
+                                playerData.inventory.addItem('coin', mat.sellValue * Number(text));
+                            }
+                            else {
+                                playerData.inventory.addItem('coin', mat.sellValue * playerData.inventory.getItemAmount(mat.name));
+                            }
+                        }
+                        if (typeof item !== "undefined" && playerData.inventory.getItemAmount(item.name)) {
+                            const enoughitem = playerData.inventory.removeItem(item.name, Number(text));
+                            if (enoughitem != ERROR_NOTENOUGHITEM) {
+                                playerData.inventory.addItem('coin', item.sellValue * Number(text));
+                            }
+                            else {
+                                playerData.inventory.addItem('coin', item.sellValue * playerData.inventory.getItemAmount(item.name));
+                            }
+                        }
+                        parserKey = PARSER_NONE;
+                        
+                    }
+                    else {
+                        updateText('input what to sell, or say cancel to cancel');
+                        parserKey = PARSER_SELL;
+                    }
                 }
+                // if (text == 'tset') {
+                //     MATERIALS_1.forEach((value) => {
+                //         playerData.inventory.addItem(value.name, 999)
+                //     });
+                // }
             }
         </script>
         <script>
