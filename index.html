@@ -15,12 +15,12 @@
         <h1>Mineral Madness</h1>
         <!-- <p style="font-size: 0.85vw; color: red;" id="motcu">"U" before a version means it is unstable and/or unusable, while the number after the "U" tells you what is the current unstable build of that version*</p> -->
         development
-        <h3 id="motctitle" style="line-height: 6px; font-size: 16px">MOTC <!-- <divisor style="color: red">U4*</divisor> --> 0.3.1
+        <h3 id="motctitle" style="line-height: 6px; font-size: 16px">MOTC <!-- <divisor style="color: red">U4*</divisor> --> 0.3.2
         </h3>
-        <p id="motctext1" style="line-height: 1px; font-size: 12px">you can get coins from selling things but you cant do anything with those coins</p>
+        <p id="motctext1" style="line-height: 4px; font-size: 12px">you can get coins from selling things but you cant do anything with those coins</p>
         <p id="motctext2" style="line-height: 4px; font-size: 12px;">0.4 will probably add further refining of materials and items and polish the selling system</p>
         <p id="motctext3" style="font-size: 12px; line-height: 4px;">0.5 will add villages that you cant mine in unless you pay a small fee to mine x times</p>
-
+        <p id="motctext4" style="line-height: 4px; font-size: 12px;">fixed a couple bugs that came from merging development branch</p>
         <!-- <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext1">recipes command exists</p>
         <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext2">crafting is fixed but perks from tools dont exist yet</p>
         <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext3">there is now a cool looking submit button for mobile and stuff as well as a better looking input</p> -->
@@ -120,6 +120,7 @@
                             withinRange = false;
                         }
                     }
+                }
                 /** @param {Number} offsetMin @param {Number} offsetMax */
                 randomWithinRange(offsetMin, offsetMax) {
                     return randomNumber(this.min + offsetMin, this.max + offsetMax);
