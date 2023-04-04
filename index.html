@@ -14,12 +14,12 @@
     <div id="motc">
         <h1>Mineral Madness</h1>
         <!-- <p style="font-size: 0.85vw; color: red;" id="motcu">"U" before a version means it is unstable and/or unusable, while the number after the "U" tells you what is the current unstable build of that version*</p> -->
-        <h3 id="motctitle" style="line-height: 6px; font-size: 16px">MOTC <!-- <divisor style="color: red">U4*</divisor> --> 0.3.2.1
+        <h3 id="motctitle" style="line-height: 6px; font-size: 16px">MOTC <!-- <divisor style="color: red">U4*</divisor> --> 0.4
         </h3>
-        <p id="motctext1" style="line-height: 4px; font-size: 12px">you can get coins from selling things but you cant do anything with those coins</p>
-        <p id="motctext2" style="line-height: 4px; font-size: 12px;">0.4 will probably add further refining of materials and items and polish the selling system</p>
+        <p id="motctext1" style="line-height: 4px; font-size: 12px">you now get a pro gamer certificate for getting 250 coins</p>
+        <p id="motctext2" style="line-height: 4px; font-size: 12px;">use recipes to see a list of recipes</p>
         <p id="motctext3" style="font-size: 12px; line-height: 4px;">0.5 will add villages that you cant mine in unless you pay a small fee to mine x times</p>
-        <p id="motctext4" style="line-height: 4px; font-size: 12px;">fixed a couple bugs that came from merging development branch</p>
+        <p id="motctext4" style="line-height: 4px; font-size: 12px;">there are now volcanoes which have a 10 percent chance to spawn in place of a mountain and have obsidian</p>
         <!-- <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext1">recipes command exists</p>
         <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext2">crafting is fixed but perks from tools dont exist yet</p>
         <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext3">there is now a cool looking submit button for mobile and stuff as well as a better looking input</p> -->
@@ -182,7 +182,7 @@
                 }
             }
             //materials
-            const MATERIALS_1 = [new Material(2, 'stone', 2, undefined, 1), new Material(1, 'wood', 2, undefined, 1), new Material(1, 'clay', 1, ['plains', 'forest'], 1), new Material(1, 'plants', 2, ['plains', 'forest'], 1)];
+            const MATERIALS_1 = [new Material(2, 'stone', 2, undefined, 1), new Material(1, 'wood', 2, undefined, 1), new Material(1, 'clay', 1, ['plains', 'forest'], 1), new Material(1, 'plants', 2, ['plains', 'forest'], 1), new Material(2, 'obsidian', 1, ['volcano'], 10), new Material(1, 'hide', 2, ['plains', 'forest'], 2)];
             class CraftableItem extends Item {
                 /** @param {Number} itemVolume @param {String} itemName @param {Object[]} costs @param {String} costs[].item @param {Number} costs[].amount @param {Number} multiplier @param {Number} sellValue*/
                 constructor(itemVolume, itemName, costs, multiplier = 1, sellValue/*, tier */) {
@@ -196,7 +196,7 @@
                 #hasBeenUsed = false;
                 /** @param {Number} toolVolume @param {String} toolName @param {Object[]} costs @param {String} costs[].item @param {Number} costs[].amount @param {Object} miningPerks @param {Number} miningPerks.speed @param {Number} miningPerks.returns @param {Number} miningPerks.tier*/
                 constructor(toolVolume, toolName, costs, miningPerks, sellValue) {
-                    super(toolVolume, toolName, costs, sellValue);
+                    super(toolVolume, toolName, costs, 1, sellValue);
                     this.perks = {
                         mining: miningPerks,
                     }
@@ -206,6 +206,8 @@
                     playerData.perks.mining.returns *= this.perks.mining.returns;
                     playerData.perks.mining.speed *= this.perks.mining.speed;
                     playerData.perks.mining.tier = this.perks.mining.tier > playerData.perks.mining.speed ? this.perks.mining.tier : playerData.perks.mining.tier;
+                    playerData.perks.mining.returns = playerData.perks.mining.returns.toPrecision(2);
+                    playerData.perks.mining.speed = playerData.perks.mining.speed.toPrecision(2);
                 }
                 isUsed() {
                     return this.#hasBeenUsed;
@@ -265,11 +267,27 @@
             const PARSER_MOVEONMAP = 1;
             const PARSER_MINEAREA = 2;
             const PARSER_CRAFT = 3;
-            const PARSER_SELL = 4;
-            const PARSER_SELLAMOUNT = 5;
+            const PARSER_CRAFTAMOUNT = 4;
+            const PARSER_SELL = 5;
+            const PARSER_SELLAMOUNT = 6;
+            const PARSER_RECIPEBROWSE = 7;
+            //sum summus
             //items
             /** @type {Array.<CraftableItem|Tool>} */
-            const ITEMS_1 = [new CraftableItem(1, 'wood planks', [{ item: 'wood', amount: 1 }], 2, 1), new CraftableItem(2, 'stone chunks', [{ item: 'stone', amount: 2 }], undefined, 3), new Tool(5, 'stone tools', [{ item: 'stone', amount: 6 }, { item: 'wood', amount: 3 }], { returns: 1, speed: 1.2, tier: 0 }, 12)];
+            const ITEMS_1 = [
+                new CraftableItem(2, 'wood planks', [{ item: 'wood', amount: 3 }], 1, 4),
+                new CraftableItem(1, 'rope', [{ item: 'plants', amount: 3 }], 2, 2),
+                new CraftableItem(1, 'flint', [{ item: 'stone', amount: 2 }], 1, 2 ),
+                new CraftableItem(2, 'firewood', [{ item: 'wood planks', amount: 1}], 1, 6),
+                new CraftableItem(1, 'medicinal herbs', [{ item: 'plants', amount: 2}], 1, 4),
+                new CraftableItem(3, 'flint weaponry', [{ item: 'wood', amount: 2 }, { item: 'flint', amount: 2 }, { item: 'rope', amount: 1 }], 1, 12),
+                new CraftableItem(6, 'obsidian weaponry', [{ item: 'wood', amount: 2 }, { item: 'obsidian', amount: 2 }, { item: 'rope', amount: 2 }], 1, 30),
+                new Tool(5, 'stone tools', [{ item: 'wood', amount: 3 }, { item: 'stone', amount: 4 }, { item: 'rope', amount: 1 }], { returns: 1, speed: 1.2, tier: 0 }, 12),
+                new Tool(8, 'obsidian tools', [{ item: 'wood', amount: 3 }, { item: 'obsidian', amount: 2 }, { item: 'rope', amount: 2 }], { returns: 1, speed: 1.5, tier: 1 }, 32),
+                new CraftableItem(10, 'survival pack', [{ item: 'stone tools', amount: 1 }, { item: 'flint weaponry', amount: 1 }, { item: 'medicinal herbs', amount: 2 }, { item: 'rope', amount: 3 }], 1, 40),
+                new CraftableItem(5, 'firestarting kit', [{ item: 'firewood', amount: 2}, { item: 'flint', amount: 2 }], 1, 16),
+                new CraftableItem(3, 'hide clothes', [{ item: 'hide', amount: 6 }, { item: 'rope', amount: 1 }], 1, 16)
+            ];
         </script>
     </div>
     <!-- functional scripts -->
@@ -365,14 +383,19 @@
                 /** @param {String} input */
                 function updateText(input, cons = 1) {
                     const whichconsole = cons == 1 ? '' : 'e';
-                    for (let i = 1; i < 11; i++) {
-                        EM.elementID('console' + whichconsole + String(i)).innerHTML = EM.elementID('console' + String(i + 1)).innerHTML;
+                    const whichcons = cons == 1 ? '11' : '10';
+                    for (let i = 1; i < Number(whichcons); i++) {
+                        EM.elementID('console' + whichconsole + String(i)).innerHTML = EM.elementID('console' + whichconsole + String(i + 1)).innerHTML;
                     }
-                    EM.elementID('console11').innerHTML = '> ' + input;
+                    EM.elementID('console' + whichconsole + whichcons).innerHTML = '> ' + input;
                 }
                 function updateLine(input = 'lorem', line = 1, cons = 1) {
                     const whichconsole = cons == 1 ? '' : 'e';
                     EM.elementID('console' + whichconsole + String(line)).innerHTML = '> ' + input;
+                }
+                if (playerData.inventory.getItemAmount('coin') >= 250 && playerData.inventory.getItemAmount('pro gamer certificate') == ERROR_NOITEM) {
+                    playerData.inventory.addItem('pro gamer certificate');
+                    updateText('you got a pro gamer certificate', 2);
                 }
                 let text = value;
                 playerData.lastInput = text;
@@ -554,16 +577,48 @@
                         parserKey = PARSER_CRAFT;
                     }
                 }
-                if (text == 'recipes' && parserKey == PARSER_NONE) {
-                    ITEMS_1.forEach((value) => {
-                        let string = `${value.name} costs:`
-                        value.costs.forEach((valueb, index) => {
-                            if (true) {
-                                string = `${string} ${valueb.amount} ${valueb.item}`
-                            } 
-                        })
-                        updateText(string);
-                    });
+                if ((text == 'recipes' && parserKey == PARSER_NONE) || parserKey == PARSER_RECIPEBROWSE) {
+                    if (parserKey == PARSER_NONE) {
+                        for (let i = 0; i < 9 && i < ITEMS_1.length; i++) {
+                            const value = ITEMS_1[i];
+                            let string = `${value.name} costs:`
+                            value.costs.forEach((valueb, index) => {
+                                if (true) {
+                                    string = `${string} ${valueb.amount} ${valueb.item}`
+                                } 
+                            })
+                            updateText(string);
+                            if (i == 8) {
+                                playerData.tempStorage = 8;
+                                updateText('do you want to go to the next page');
+                                parserKey = PARSER_RECIPEBROWSE;
+                            }
+                        }                      
+                    }
+                    else if (parserKey == PARSER_RECIPEBROWSE) {
+                        if (text == 'cancel') {
+                            parserKey = PARSER_NONE;
+                        }
+                        else if (text == 'yes') {
+                            for (let i = 0; i < 10 && i + playerData.tempStorage < ITEMS_1.length; i++) {
+                                const value = ITEMS_1[i + playerData.tempStorage];
+                                let string = `${value.name} costs:`
+                                value.costs.forEach((valueb, index) => {
+                                    if (true) {
+                                        string = `${string} ${valueb.amount} ${valueb.item}`
+                                    } 
+                                })
+                                if (i == 9 && i + playerData.tempStorage != ITEMS_1.length - 1) {
+                                    playerData.tempStorage += 9;
+                                    updateText('do you want to go to the next page');
+                                }
+                                else if (i + playerData.tempStorage == ITEMS_1.length - 1) {
+                                    parserKey = PARSER_NONE;
+                                }
+                                updateText(string);
+                            }
+                        }
+                    }
                 }
                 if ((text == 'sell' && parserKey == PARSER_NONE) || (parserKey == PARSER_SELL) || (parserKey == PARSER_SELLAMOUNT)) {
                     if (parserKey == PARSER_SELL) {
@@ -586,18 +641,24 @@
                             const enoughmat = playerData.inventory.removeItem(mat.name, Number(text));
                             if (enoughmat != ERROR_NOTENOUGHITEM) {
                                 playerData.inventory.addItem('coin', mat.sellValue * Number(text));
+                                updateText(`you got ${mat.sellValue * Number(text)} coins`);
                             }
                             else {
                                 playerData.inventory.addItem('coin', mat.sellValue * playerData.inventory.getItemAmount(mat.name));
+                                updateText(`you got ${mat.sellValue * playerData.inventory.getItemAmount(mat.name)} coins`);
+                                playerData.inventory.removeItem(mat.name, playerData.inventory.getItemAmount(mat.name));
                             }
                         }
                         if (typeof item !== "undefined" && playerData.inventory.getItemAmount(item.name)) {
                             const enoughitem = playerData.inventory.removeItem(item.name, Number(text));
                             if (enoughitem != ERROR_NOTENOUGHITEM) {
                                 playerData.inventory.addItem('coin', item.sellValue * Number(text));
+                                updateText(`you got ${item.sellValue * Number(text)} coins`);
                             }
                             else {
                                 playerData.inventory.addItem('coin', item.sellValue * playerData.inventory.getItemAmount(item.name));
+                                updateText(`you got ${item.sellValue * playerData.inventory.getItemAmount(item.name)} coins`);
+                                playerData.inventory.removeItem(item.name, playerData.inventory.getItemAmount(item.name));
                             }
                         }
                         /*
@@ -615,8 +676,12 @@
                 }
                 // if (text == 'tset') {
                 //     MATERIALS_1.forEach((value) => {
-                //         playerData.inventory.addItem(value.name, 999)
+                //         playerData.inventory.addItem(value.name, 999);
                 //     });
+                //     ITEMS_1.forEach((value) => {
+                //         playerData.inventory.addItem(value.name, 999);
+                //     });
+                //     console.log(playerData.perks.mining.speed);
                 // }
 
             }
@@ -637,30 +702,36 @@
                                 /*a prevalence value divided by the sum of all 3 prevalence values times 
                                 100 is about how many of a material you get per 100 resources */
                                 case 1:
-                                    prevalenceOffset = [[1, 2], [-1, 0], [0, 1], [0, 1]];
+                                    prevalenceOffset = [[1, 2], [-1, 0], [0, 1], [0, 1], [0, 0], [-1, 0]];
                                     biome = 'plains';
                                     break;
                                 case 2:
-                                    prevalenceOffset = [[1, 2], [1, 1], [0, 1], [1, 2]];
+                                    prevalenceOffset = [[1, 2], [1, 1], [0, 1], [1, 2], [0, 0], [0, 0]];
                                     biome = 'plains';
                                     break;
                                 case 3:
-                                    prevalenceOffset = [[0, 0], [-1, 0], [0, 0], [0, 0]];
+                                    prevalenceOffset = [[0, 0], [-1, 0], [0, 0], [0, 0], [0, 0], [0, 0]];
                                     biome = 'desert';
                                     break;
                                 case 4:
-                                    prevalenceOffset = [[1, 1], [2, 3], [0, 0], [2, 2]];
+                                    prevalenceOffset = [[2, 2], [3, 4], [0, 0], [2, 2], [0, 0], [0, 1]];
                                     biome = 'forest';
                                     break;
                                 case 5:
-                                    prevalenceOffset = [[2, 3], [-1, -1], [0, 0], [0, 0]];
-                                    biome = 'mountain';
+                                    if (randomNumber(1, 10) == 1) {
+                                        prevalenceOffset = [[14, 15], [-2, -2], [0, 0], [0, 0], [0, 0], [0, 0]];
+                                        biome = 'volcano';
+                                    }
+                                    else {
+                                        prevalenceOffset = [[2, 3], [-1, -1], [0, 0], [0, 0], [0, 0], [0, 0]];
+                                        biome = 'mountain';
+                                    }
                                     break;
                             }
                         }
                         let name = `x${String(playerData.location.vector.x)}y${String(playerData.location.vector.y)}`;
                         if (!map.hasOwnProperty(playerData.location.getCoords())) {
-                            map[name] = new MapTile(playerData.location.vector.x, playerData.location.vector.y, biome, [randomNumber(prevalenceOffset[0][0], prevalenceOffset[0][1]), randomNumber(prevalenceOffset[1][0], prevalenceOffset[1][1]), randomNumber(prevalenceOffset[2][0], prevalenceOffset[2][1]), randomNumber(prevalenceOffset[3][0], prevalenceOffset[3][1])]);
+                            map[name] = new MapTile(playerData.location.vector.x, playerData.location.vector.y, biome, [randomNumber(prevalenceOffset[0][0], prevalenceOffset[0][1]), randomNumber(prevalenceOffset[1][0], prevalenceOffset[1][1]), randomNumber(prevalenceOffset[2][0], prevalenceOffset[2][1]), randomNumber(prevalenceOffset[3][0], prevalenceOffset[3][1]), randomNumber(prevalenceOffset[4][0], prevalenceOffset[4][1]), randomNumber(prevalenceOffset[5][0], prevalenceOffset[5][1])]);
                         }
                         chosen = false;
                     }

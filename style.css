@@ -8,7 +8,7 @@
 }
 
 body {
-  background: linear-gradient(to right, #444, #666, #777, #797979, #777, #666, #444);
+  background-color: #777;
   color: white;
   font-family: standardFont;
 }
@@ -40,11 +40,12 @@ body {
 }
 #console {
   padding-left: 1.25vw;
+  padding-right: 1.25vw;
   padding-bottom: 2vh;
   border-color: white;
   border-width: 3px;
   border-style: inset;
-  width: 70vw;
+  width: max-content;
   height: max-content;
   background-color: black;
   font-family: consoleFont;

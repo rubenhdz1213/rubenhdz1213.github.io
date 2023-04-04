@@ -1,5 +1,9 @@
-# rubenhdz1213.github.io
-so basically this is a funny game about mining and automating
-use mine in the console then input a number from 1-30 to select how many times you want to mine
-use recipes to see a list of recipes you can craft using the craft command
-use inventory to see what you have
+# rubenhdz1213.github.io | Mineral Madness
+so basically this is a funny game about mining and automating  
+use mine to mine resources  
+use move and type in a direction (up, down, left, right) to move around the infinite map  
+use location to see where you are  
+use recipes to see what you can craft  
+use craft to craft things  
+you can craft the tools in the recipes to speed up mining  
+no this isnt a copy of that one first person game from 2022 called mineral madness
