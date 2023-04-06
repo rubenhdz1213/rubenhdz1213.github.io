@@ -706,11 +706,15 @@
                         } else {
                             const exists = playerData.inventory.list.includes(text);
                             if (exists) {
-                            playerData.tempStorage = text;
-                            const itemAmount = playerData.inventory.getItemAmount(text);
-                            updateText(`input how many to sell, you have ${itemAmount} ${text}`);
+                                playerData.tempStorage = text;
+                                const itemAmount = playerData.inventory.getItemAmount(text);
+                                updateText(`input how many to sell, you have ${itemAmount} ${text}`);
+                                parserKey = PARSER_SELLAMOUNT;
                             }
-                            parserKey = PARSER_SELLAMOUNT;
+                            else {
+                                updateText('you don\'t have any of that')
+                            }
+                            
                         }
                         break;
                         case PARSER_SELLAMOUNT:
