@@ -11,6 +11,7 @@
 </head>
 
 <body>
+    <div id="popup">Your message here!</div>
     <div id="motc">
         <h1>Mineral Madness</h1>
         <!-- <p style="font-size: 0.85vw; color: red;" id="motcu">"U" before a version means it is unstable and/or unusable, while the number after the "U" tells you what is the current unstable build of that version*</p> -->
@@ -254,6 +255,14 @@
                 elementsClass: function (classname) { return document.getElementsByClassName(classname); },
                 /** @param {HTMLElement} element */
                 elementText: function (element, text) { element.innerHTML = text; }
+            }
+            function showPopup(message) {
+                const popup = EM.elementID('popup');
+                popup.innerText = message;
+                popup.style.opacity = 1;
+                setTimeout(() => {
+                    popup.style.opacity = 0;
+                }, 500);
             }
             /** @param {String} input */
             function updateText(input, cons = 1) {
@@ -727,15 +736,15 @@
                         updateText('you dont have enough money to pay someone to start working')
                     }
                 }
-                // if (text == 'tset') {
-                //     MATERIALS_1.forEach((value) => {
-                //         playerData.inventory.addItem(value.name, 999);
-                //     });
-                //     ITEMS_1.forEach((value) => {
-                //         playerData.inventory.addItem(value.name, 999);
-                //     });
-                // }
-
+                if (text == 'tset') {
+                    playerData.inventory.addItem('coin', 20);
+                    MATERIALS_1.forEach((value) => {
+                        playerData.inventory.addItem(value.name, 999);
+                    });
+                    ITEMS_1.forEach((value) => {
+                        playerData.inventory.addItem(value.name, 999);
+                    });
+                }
             }
         </script>
         <script>
@@ -791,7 +800,7 @@
                         cantPay++;
                     }
                 });
-                cantPay > 0 ? updateText(`you dont have enough money to pay ${String(cantPay)} of your workers`, 2) : '';
+                cantPay > 0 ? showPopup(`you dont have enough money to pay ${String(cantPay)} of your workers`, 2) : '';
             }, 60000);
         </script>
     </div>

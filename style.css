@@ -83,3 +83,18 @@ body {
   line-height: 1.25vh;
   font-size: 1vw;
 }
+
+#popup {
+  font-size: 1.05vw;
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background-color: #404040;
+  color: #fff;
+  padding: 10px;
+  padding-left: 20px;
+  padding-right: 20px;
+  border-radius: 7px;
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
+}
