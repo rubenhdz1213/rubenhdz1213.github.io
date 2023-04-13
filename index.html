@@ -14,12 +14,13 @@
     <div id="motc">
         <h1>Mineral Madness</h1>
         <!-- <p style="font-size: 0.85vw; color: red;" id="motcu">"U" before a version means it is unstable and/or unusable, while the number after the "U" tells you what is the current unstable build of that version*</p> -->
-        <h3 id="motctitle" style="line-height: 6px; font-size: 16px">MOTC<!-- <divisor style="color: red">U4*</divisor> --> 0.5
+        <h3 id="motctitle" style="line-height: 6px; font-size: 16px">MOTC<!-- <divisor style="color: red">U4*</divisor> --> 0.6
         </h3>
-        <p id="motctext1" style="line-height: 4px; font-size: 12px">structure generation has been added and some new biomes</p>
-        <p id="motctext2" style="line-height: 4px; font-size: 12px;">use recipes to see a list of recipes</p>
-        <p id="motctext3" style="font-size: 12px; line-height: 4px;">0.6 will add simple automation at the price of a few (10-15) coins per minute</p>
-        <p id="motctext4" style="line-height: 4px; font-size: 12px;">villages exist and give 1.5x the recourses at the cost of 1.25x the amount you mined in coins, so 1.25 coins a second for 1.5x the resources</p>
+        <p id="motctext1" style="line-height: 4px; font-size: 12px">theres now a wiki with these changelogs on the <a href="https://github.com/rubenhdz1213/rubenhdz1213.github.io/wiki/">repository</a></p>
+        <p id="motctext2" style="line-height: 4px; font-size: 12px;">use hire to hire up to 3 workers at the cost of 10 coins a minute, they mine 50% to 60% as fast as you and have a chance to get extra returns</p>
+        <p id="motctext3" style="font-size: 12px; line-height: 4px;">each worker hired required a down payment of 20 coins</p>
+        <p id="motctext4" style="line-height: 4px; font-size: 12px;">0.7 will change biome gen so that distance from the center affects biomes; the far north is 2500 blocks, east is 2500, and vice versa for south and west (transportation will exist too)</p>
+        <p id="motctext5" style="line-height: 4px; font-size: 12px">distances above 5k tiles from the center will be the wasteland biome that has no resources but stone</p>
         <!-- <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext1">recipes command exists</p>
         <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext2">crafting is fixed but perks from tools dont exist yet</p>
         <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext3">there is now a cool looking submit button for mobile and stuff as well as a better looking input</p> -->
@@ -88,7 +89,7 @@
                 }
             }
             class NumberRange {
-                /** @param {Number} min @param {Number} max */
+                /** @param {Number} min @param {Number} max @param {Boolean} inclusiveMin @param {Boolean} invlusiveMax */
                 constructor(min, max, inclusiveMin, inclusiveMax) {
                     this.min = min;
                     this.max = max;
@@ -96,9 +97,9 @@
                     this.inclusiveMin = inclusiveMin;
                 }
                 /** @param {Number} number @param {Number} offsetMin @param {Number} offsetMax */
-                betweenRange(number, offsetMin, offsetMax) {
+                betweenRange(number, offsetMin = 0, offsetMax = 0) {
                     let withinRange = true;
-                    if (this.inclusivemin) {
+                    if (this.inclusiveMin) {
                         if (number < this.min + offsetMin) {
                             withinRange = false;
                         }
@@ -118,35 +119,11 @@
                             withinRange = false;
                         }
                     }
+                    return withinRange;
                 }
                 /** @param {Number} offsetMin @param {Number} offsetMax */
                 randomWithinRange(offsetMin, offsetMax) {
                     return randomNumber(this.min + offsetMin, this.max + offsetMax);
-                }
-                /** @param {NumberRange} range @param {Number} number @param {Boolean} inclusiveMin @param {Boolean} inclusiveMax    */
-                static betweenRange(range, number = 0, inclusiveMin = true, inclusiveMax = true) {
-                    let withinRange = true;
-                    if (inclusiveMin) {
-                        if (number < range.min) {
-                            withinRange = false;
-                        }
-                    }
-                    else {
-                        if (number <= range.min) {
-                            withinRange = false;
-                        }
-                    }
-                    if (inclusiveMax) {
-                        if (number > range.max) {
-                            withinRange = false;
-                        }
-                    }
-                    else {
-                        if (number >= range.max) {
-                            withinRange = false;
-                        }
-                    }
-                    return withinRange;
                 }
             }
             class Item {
@@ -258,10 +235,10 @@
                     if (Math.random() > this.spawnChance) {
                         return;
                     }
-                    if (!spawnRequirements(tile)) {
+                    if (tile.sizeX < this.sizeX || tile.sizeY < this.sizeY) {
                         return;
                     }
-                    if (tile.sizeX < this.sizeX || tile.sizeY < this.sizeY) {
+                    if (!spawnRequirements(tile)) {
                         return;
                     }
                     tile.building = this.name;
@@ -277,6 +254,49 @@
                 elementsClass: function (classname) { return document.getElementsByClassName(classname); },
                 /** @param {HTMLElement} element */
                 elementText: function (element, text) { element.innerHTML = text; }
+            }
+            /** @param {String} input */
+            function updateText(input, cons = 1) {
+                const whichconsole = cons == 1 ? '' : 'e';
+                const whichcons = cons == 1 ? '11' : '10';
+                for (let i = 1; i < Number(whichcons); i++) {
+                    EM.elementID('console' + whichconsole + String(i)).innerHTML = EM.elementID('console' + whichconsole + String(i + 1)).innerHTML;
+                }
+                EM.elementID('console' + whichconsole + whichcons).innerHTML = '> ' + input;
+            }
+            /** @param {String} input */
+            function updateLine(input, line = 1, cons = 1) {
+                const whichconsole = cons == 1 ? '' : 'e';
+                EM.elementID('console' + whichconsole + String(line)).innerHTML = '> ' + input;
+            }
+            /** @typedef {Object} mat @property {String} name @property {Number} amount */
+            /** @param {MapTile} tile */
+            function mineLocation(mineAmount = 1, tile, multiplier = 1, speed = 1) {
+                /** @type {Object.<string, mat>} */
+                let materialOutput = {};
+                const input = isDigit(mineAmount) ? Number(mineAmount) <= 60 ? Number(mineAmount) : 60 : 1;
+                const availableMaterials = MATERIALS_1.filter(value => value.biomes.includes('all') || value.biomes.includes(tile.biome));
+                /** @type {Number} total */
+                const total = availableMaterials.reduce(/** @param {Number} accumulator */(accumulator, material) => { accumulator = isDigit(accumulator) ? accumulator : 0; return accumulator + tile.prevalences[material.name]; });
+                const prevalences = availableMaterials.map(value => tile.prevalences[value.name]);
+                for (let i = 0; i < input; i++) {
+                    let start = 0;
+                    const RN = randomNumber(0, total);
+                    availableMaterials.forEach((value, index, arr) => {
+                        if (new NumberRange(start, start + prevalences[index], true, index + 1 === arr.length).betweenRange(RN)) {
+                            materialOutput[value.name] ??= { name: value.name, amount: 0 };
+                            materialOutput[value.name].amount += 1 * multiplier;
+                        }
+                        start += prevalences[index];
+                    });
+                }
+                const materials = Object.values(materialOutput);
+                setTimeout(() => {
+                    materials.forEach((material) => {
+                        playerData.inventory.addItem(material.name, Math.floor(material.amount));
+                    });
+                }, (1000 * Number(input)) / speed);
+                return materials;
             }
             function doesExist(value) { return value == undefined ? false : true; }
             function randomNumber(min = 0, max = 1) { min = Math.ceil(min); max = Math.floor(max); return Math.round(Math.random() * (max - min) + min); }
@@ -386,6 +406,11 @@
                         return this.list.includes(item) ? this.listamounts[this.list.indexOf(item)] : ERROR_NOITEM;
                     }
                 },
+                workers: {
+                    /** @typedef {Object} Miner @property {Vector2} coords @property {Number} multiplier @property {Number} speed */
+                    /** @type {Miner[]} */
+                    miners: []
+                },
                 perks: {
                     mining: {
                         speed: 1,
@@ -417,19 +442,6 @@
             });
             /**  @param {String} value */
             function inputParser(value) {
-                /** @param {String} input */
-                function updateText(input, cons = 1) {
-                    const whichconsole = cons == 1 ? '' : 'e';
-                    const whichcons = cons == 1 ? '11' : '10';
-                    for (let i = 1; i < Number(whichcons); i++) {
-                        EM.elementID('console' + whichconsole + String(i)).innerHTML = EM.elementID('console' + whichconsole + String(i + 1)).innerHTML;
-                    }
-                    EM.elementID('console' + whichconsole + whichcons).innerHTML = '> ' + input;
-                }
-                function updateLine(input = 'lorem', line = 1, cons = 1) {
-                    const whichconsole = cons == 1 ? '' : 'e';
-                    EM.elementID('console' + whichconsole + String(line)).innerHTML = '> ' + input;
-                }
                 if (playerData.inventory.getItemAmount('coin') >= 250 && playerData.inventory.getItemAmount('pro gamer certificate') == ERROR_NOITEM) {
                     playerData.inventory.addItem('pro gamer certificate');
                     updateText('you got a pro gamer certificate', 2);
@@ -485,6 +497,7 @@
                     }
                 }
                 if ((text == 'mine' && parserKey == PARSER_NONE) || parserKey == PARSER_MINEAREA) {
+                    const input = isDigit(text) ? Number(text) <= 60 ? Number(text) : 60 : 1;
                     if (!playerData.doingAction) {
                         if (parserKey == PARSER_MINEAREA) {
                             if (secondaryKey === SPARSER_MINEVILLAGE) {
@@ -492,53 +505,12 @@
                                 parserKey = text == 'yes' ? PARSER_MINEAREA : PARSER_NONE;
                             }
                             else if (secondaryKey === SPARSER_NONE || secondaryKey === SPARSER_MININGVILLAGE) {
-                                let input = 0;
-                                if (!isDigit(text)) {
-                                    input = 1;
-                                }
-                                else {
-                                    input = Math.ceil(Number(text));
-                                }
-                                if (input > 60) {
-                                    input = 60;
-                                }
+                                let multiplier = 1;
                                 if (secondaryKey == SPARSER_MININGVILLAGE) {
-                                    playerData.inventory.removeItem('coin', Math.ceil(input * 1.25));
+                                    const enoughMoney = playerData.inventory.removeItem('coin', Math.ceil(input * 1.25));
+                                    multiplier = secondaryKey === SPARSER_MININGVILLAGE && enoughMoney !== ERROR_NOITEM && enoughMoney !== ERROR_NOTENOUGHITEM ? 1.5 : 1;
                                 }
-                                /** @type {MapTile} */
-                                const tile = map[playerData.location.getCoords()];
-                                /** @type {String[]} */
-                                let materialOutput = [];
-                                /** @type {Number[]} */
-                                let materialAmount = [];
-                                /** @type {String[]} */
-                                const locationbiome = tile.biome;
-                                let availableMaterials = MATERIALS_1.filter((value) => { return value.biomes.includes('all') || value.biomes.includes(locationbiome) })
-                                let total = 0;
-                                /** @type {Number[]} */
-                                let prevalences = [];
-                                for (let i = 0; i < availableMaterials.length; i++) {
-                                    total += map[playerData.location.getCoords()].prevalences[availableMaterials[i].name];
-                                    prevalences.push(map[playerData.location.getCoords()].prevalences[availableMaterials[i].name]);
-                                }
-                                for (let i = 0; i < input; i++) {
-                                    let start = 0;
-                                    const RN = randomNumber(0, total);
-                                    for (let o = 0; o < availableMaterials.length; o++) {
-                                        const material = availableMaterials[o];
-                                        if (NumberRange.betweenRange(new NumberRange(start, start + prevalences[o]), RN, true, o == availableMaterials.length - 1 ? true : false)) {
-                                            if (!materialOutput.includes(material.name)) {
-                                                materialOutput.push(material.name);
-                                                materialAmount.push(1);
-                                            }
-                                            else {
-                                                materialAmount[materialOutput.indexOf(material.name)] += 1;
-                                            }
-                                        }
-                                        start += prevalences[o];
-                                    }
-                                }
-                                /** @type {Object} */
+                                // /** @type {Object} */
                                 EM.elementID('consolee1').innerHTML = '> []';
                                 playerData.doingAction = true;
                                 function updateProgressBar(progress) {
@@ -547,7 +519,7 @@
                                     const progressBarString = "> [" + "-".repeat(progressBarLength * progress) + "]";
                                     progressBarElement.innerHTML = progressBarString;
                                     }
-                                    const miningTime = 1000 * Number(input) / playerData.perks.mining.speed;
+                                    const miningTime = 1000 * input / playerData.perks.mining.speed;
                                     let progress = 0;
                                     playerData.doingAction = true;
                                     const miningInterval = setInterval(() => {
@@ -561,18 +533,11 @@
                                     }
                                     }, miningTime / 10);
                                 let inventory = playerData.inventory;
+                                const output = mineLocation(text, map[playerData.location.getCoords()], multiplier, playerData.perks.mining.speed);
+                                let string = '';
+                                output.forEach((value, index, arr) => {string = `${string} ${String(value.amount)} ${value.name}${index + 1 == arr.length && arr.length > 1 ? ', and' : arr.length == 1 ? '' : ', '}`});
                                 setTimeout(() => {
-                                    let string = '';
-                                    for (let a = 0; a < materialOutput.length; a++) {
-                                        materialAmount[a] = secondaryKey == SPARSER_MININGVILLAGE ? Math.floor(materialAmount[a] * 1.5) : materialAmount[a];
-                                        string = `${string}${materialAmount[a]} ${materialOutput[a]} `
-                                    }
                                     updateLine(`you got ${string}`, 2, 2);
-                                    for (let a = 0; a < materialOutput.length; a++) {
-                                        const element = materialOutput[a];
-                                        const elemen = materialAmount[a];
-                                        playerData.inventory.addItem(element, elemen);
-                                    }
                                 }, (1000 * Number(input) / playerData.perks.mining.speed) + 1);
                                 parserKey = PARSER_NONE;
                             }
@@ -701,58 +666,67 @@
                 if ((text === 'sell' && parserKey === PARSER_NONE) || parserKey === PARSER_SELL || parserKey === PARSER_SELLAMOUNT) {
                     switch (parserKey) {
                         case PARSER_SELL:
-                        if (text === 'cancel') {
-                            parserKey = PARSER_NONE;
-                        } else {
-                            const exists = playerData.inventory.list.includes(text);
-                            if (exists) {
-                                playerData.tempStorage = text;
-                                const itemAmount = playerData.inventory.getItemAmount(text);
-                                updateText(`input how many to sell, you have ${itemAmount} ${text}`);
-                                parserKey = PARSER_SELLAMOUNT;
+                            if (text === 'cancel') {
+                                parserKey = PARSER_NONE;
+                            } else {
+                                const exists = playerData.inventory.list.includes(text);
+                                if (exists) {
+                                    playerData.tempStorage = text;
+                                    const itemAmount = playerData.inventory.getItemAmount(text);
+                                    updateText(`input how many to sell, you have ${itemAmount} ${text}`);
+                                    parserKey = PARSER_SELLAMOUNT;
+                                }
+                                else {
+                                    updateText('you don\'t have any of that')
+                                }
+                                
                             }
-                            else {
-                                updateText('you don\'t have any of that')
-                            }
-                            
-                        }
-                        break;
+                            break;
                         case PARSER_SELLAMOUNT:
-                        const mat = MATERIALS_1.find(value => value.name === playerData.tempStorage);
-                        const item = ITEMS_1.find(value => value.name === playerData.tempStorage);
-                        let amount;
-                        if (typeof mat !== 'undefined') {
-                            amount = playerData.inventory.getItemAmount(mat.name);
-                            const enoughmat = playerData.inventory.removeItem(mat.name, Number(text));
-                            if (enoughmat !== ERROR_NOTENOUGHITEM) {
-                            playerData.inventory.addItem('coin', mat.sellValue * Number(text));
-                            updateText(`you got ${mat.sellValue * Number(text)} coins`);
-                            } else {
-                            playerData.inventory.addItem('coin', mat.sellValue * amount);
-                            updateText(`you got ${mat.sellValue * amount} coins`);
-                            playerData.inventory.removeItem(mat.name, amount);
+                            const mat = MATERIALS_1.find(value => value.name === playerData.tempStorage);
+                            const item = ITEMS_1.find(value => value.name === playerData.tempStorage);
+                            let amount;
+                            if (typeof mat !== 'undefined') {
+                                amount = playerData.inventory.getItemAmount(mat.name);
+                                const enoughmat = playerData.inventory.removeItem(mat.name, Number(text));
+                                if (enoughmat !== ERROR_NOTENOUGHITEM) {
+                                playerData.inventory.addItem('coin', mat.sellValue * Number(text));
+                                updateText(`you got ${mat.sellValue * Number(text)} coins`);
+                                } else {
+                                playerData.inventory.addItem('coin', mat.sellValue * amount);
+                                updateText(`you got ${mat.sellValue * amount} coins`);
+                                playerData.inventory.removeItem(mat.name, amount);
+                                }
                             }
-                        }
-                        if (typeof item !== 'undefined') {
-                            amount = playerData.inventory.getItemAmount(item.name);
-                            const enoughitem = playerData.inventory.removeItem(item.name, Number(text));
-                            if (enoughitem !== ERROR_NOTENOUGHITEM) {
-                            playerData.inventory.addItem('coin', item.sellValue * Number(text));
-                            updateText(`you got ${item.sellValue * Number(text)} coins`);
-                            } else {
-                            playerData.inventory.addItem('coin', item.sellValue * amount);
-                            updateText(`you got ${item.sellValue * amount} coins`);
-                            playerData.inventory.removeItem(item.name, amount);
+                            if (typeof item !== 'undefined') {
+                                amount = playerData.inventory.getItemAmount(item.name);
+                                const enoughitem = playerData.inventory.removeItem(item.name, Number(text));
+                                if (enoughitem !== ERROR_NOTENOUGHITEM) {
+                                playerData.inventory.addItem('coin', item.sellValue * Number(text));
+                                updateText(`you got ${item.sellValue * Number(text)} coins`);
+                                } else {
+                                playerData.inventory.addItem('coin', item.sellValue * amount);
+                                updateText(`you got ${item.sellValue * amount} coins`);
+                                playerData.inventory.removeItem(item.name, amount);
+                                }
                             }
-                        }
-                        parserKey = PARSER_NONE;
+                            parserKey = PARSER_NONE;
                         break;
                         default:
                         updateText('input what to sell, or say cancel to cancel');
                         parserKey = PARSER_SELL;
                         break;
                     }
+                }
+                if (text == 'hire') {
+                    const downPayment = playerData.inventory.removeItem('coin', 20);
+                    if (downPayment !== ERROR_NOITEM && downPayment !== ERROR_NOTENOUGHITEM) {
+                        playerData.workers.miners.length < 3 ? playerData.workers.miners.push({ coords: playerData.location.vector, multiplier: randomNumber (10, 12) / 10, speed: randomNumber(50, 60) / 100 }) : updateText('you can only have 3 workers');
                     }
+                    else {
+                        updateText('you dont have enough money to pay someone to start working')
+                    }
+                }
                 // if (text == 'tset') {
                 //     MATERIALS_1.forEach((value) => {
                 //         playerData.inventory.addItem(value.name, 999);
@@ -760,7 +734,6 @@
                 //     ITEMS_1.forEach((value) => {
                 //         playerData.inventory.addItem(value.name, 999);
                 //     });
-                //     console.log(playerData.perks.mining.speed);
                 // }
 
             }
@@ -783,19 +756,43 @@
                             { name: 'mountain', prevalenceOffset: [[2, 3], [-1, -1], [0, 0], [0, 0], [0, 0], [0, 0]], likelihood: 1 },
                             { name: 'volcano', prevalenceOffset: [[14, 15], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]], likelihood: 0.1 },
                         ];
-                        const randomBiome = biomes.find(biome => Math.random() < biome.likelihood / 10);
-                        const prevalences = function () { let returnArr = []; randomBiome.prevalenceOffset.forEach((value) => { returnArr.push(randomNumber(value[0], value[1])) }); return returnArr }()
+                        const randomBiome = biomes.find(biome => Math.random() < biome.likelihood / 11);
+                        const prevalences = function() { let returnArr = []; randomBiome.prevalenceOffset.forEach((value) => { returnArr.push(randomNumber(value[0], value[1])) }); return returnArr }()
                         const name = `x${String(playerData.location.vector.x)}y${String(playerData.location.vector.y)}`;
                         if (!map.hasOwnProperty(playerData.location.getCoords())) {
                             map[name] = new MapTile(playerData.location.vector.x, playerData.location.vector.y, randomBiome.name, prevalences, randomNumber(1, 3), randomNumber(1, 3));
                         }
                         STRUCTURES_1.village.spawn((tile) => {
-                            return ['forest', 'plains', 'savannah', 'tropical forest'].includes(tile.biome);
-                        }, playerData.location.vector.x, playerData.location.vector.y);
+                            return ['forest', 'plains', 'savannah', 'tropical forest'].includes(tile.biome) && function() { 
+                                let canspawn = true;
+                                [[-1, 0], [1, 0], [0, -1], [0, 1]].forEach((value) => {
+                                    const buildingcheckcoords = MapTile.makeCoords(tile.coordinates.x + value[0], tile.coordinates.y + value[1]); 
+                                    if (typeof map[buildingcheckcoords] !== "undefined") {
+                                        canspawn = map[buildingcheckcoords].building !== 'none' ? false : canspawn;
+                                    }
+                                });
+                                return canspawn;
+                            }();
+                            }, playerData.location.vector.x, playerData.location.vector.y);
                         chosen = false;
                     }
                 }, 100);
             }  
+        </script>
+        <script>
+            const mineInterval = setInterval(() => {
+                let cantPay = 0;
+                playerData.workers.miners.forEach((value) => {
+                    const canPay = playerData.inventory.removeItem('coin', 10);
+                    if (canPay !== ERROR_NOITEM && canPay !== ERROR_NOTENOUGHITEM) {
+                        mineLocation(Math.round(60 * value.speed), map[MapTile.makeCoords(value.coords.x, value.coords.y)], value.multiplier)
+                    }
+                    else {
+                        cantPay++;
+                    }
+                });
+                cantPay > 0 ? updateText(`you dont have enough money to pay ${String(cantPay)} of your workers`, 2) : '';
+            }, 60000);
         </script>
     </div>
     <footer>
