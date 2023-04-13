@@ -245,6 +245,16 @@
                     tile.building = this.name;
                 }
             }
+            //for v0.7
+            class Biome {
+                /** @param {String} name @param {Number[]} offsets */
+                constructor(name, offsets, skeweringX = 0, skeweringY = 0) {
+                    this.name = name;
+                    this.prevalenceOffsets = offsets;
+                    this.skewX = skeweringX;
+                    this.skewY = skeweringY;
+                }
+            }
         </script>
         <!-- functions -->
         <script>
