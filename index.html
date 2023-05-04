@@ -15,43 +15,25 @@
     <div id="motc">
         <h1>Mineral Madness</h1>
         <!-- <p style="font-size: 0.85vw; color: red;" id="motcu">"U" before a version means it is unstable and/or unusable, while the number after the "U" tells you what is the current unstable build of that version*</p> -->
-        <h3 id="motctitle" style="line-height: 6px; font-size: 16px">MOTC<!-- <divisor style="color: red">U4*</divisor> --> 0.6.2
-        </h3>
-        <p id="motctext1" style="line-height: 4px; font-size: 12px">theres now a wiki with these changelogs on the <a href="https://github.com/rubenhdz1213/rubenhdz1213.github.io/wiki/">repository</a></p>
-        <p id="motctext2" style="line-height: 4px; font-size: 12px;">use hire to hire up to 3 workers at the cost of 10 coins a minute, they mine 50% to 60% as fast as you and have a chance to get extra returns</p>
-        <p id="motctext3" style="font-size: 12px; line-height: 4px;">each worker hired required a down payment of 20 coins</p>
-        <p id="motctext4" style="line-height: 4px; font-size: 12px;">0.7 will change biome gen so that distance from the center affects biomes; the far north is 2500 blocks, east is 2500, and vice versa for south and west (transportation will exist too)</p>
-        <p id="motctext5" style="line-height: 4px; font-size: 12px">distances above 5k tiles from the center will be the wasteland biome that has no resources but stone</p>
+        <h3 id="motctitle" style="line-height: 6px; font-size: 16px">MOTC<!-- <divisor style="color: red">U4*</divisor> --> 0.6.3</h3>
+        <div class="motctext" style="font-size: 10px">theres now a wiki with these changelogs on the <a href="https://github.com/rubenhdz1213/rubenhdz1213.github.io/wiki/">repository</a></div>
+        <div class="motctext" style="font-size: 10px;">you can now only hire at villages, and each village now has a set limit to how much you can hire, and they will mine one of the tiles adjacent to the village instead of where you're standing</div>
+        <div class="motctext" style="font-size: 10px;">0.7 will now instead add several new features like automated crafting and exploring nearby areas at the cost of a few coins when at a village</div>
+        <div class="motctext" style="font-size: 10px;">biome gen changing will be pushed to v0.15 or further</div>
+        <div class="motctext" style="font-size: 10px">0.6.3 refines map generation, patches bugs, makes the consoles more clean, and refines most of the game's code, while 0.6.4 will remake the classes from the ground up to be more readable and expandable</div>
         <!-- <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext1">recipes command exists</p>
         <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext2">crafting is fixed but perks from tools dont exist yet</p>
         <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext3">there is now a cool looking submit button for mobile and stuff as well as a better looking input</p> -->
     </div>
     <div id="console">
-        <p id="console1" class="consoletext">></p>
-        <p id="console2" class="consoletext">></p>
-        <p id="console3" class="consoletext">></p>
-        <p id="console4" class="consoletext">></p>
-        <p id="console5" class="consoletext">></p>
-        <p id="console6" class="consoletext">></p>
-        <p id="console7" class="consoletext">></p>
-        <p id="console8" class="consoletext">></p>
-        <p id="console9" class="consoletext">></p>
-        <p id="console10" class="consoletext">></p>
-        <p id="console11" class="consoletext">></p>
+        <div id="console1"></div>
+    </div>
+    <div id="consolecontrols">
         <input type="text" id="consoleinput" style=" color: white; border-style: solid; border-color: black;">
         <button id="submit">Submit</button>
     </div>
     <div id="consolee">
-        <p id="consolee1" class="consoleetext">></p>
-        <p id="consolee2" class="consoleetext">></p>
-        <p id="consolee3" class="consoleetext">></p>
-        <p id="consolee4" class="consoleetext">></p>
-        <p id="consolee5" class="consoleetext">></p>
-        <p id="consolee6" class="consoleetext">></p>
-        <p id="consolee7" class="consoleetext">></p>
-        <p id="consolee8" class="consoleetext">></p>
-        <p id="consolee9" class="consoleetext">></p>
-        <p id="consolee10" class="consoleetext">></p>
+        <div id="consolee1"></div>
     </div>
     <!-- utility scripts -->
     <div>
@@ -90,7 +72,7 @@
                 }
             }
             class NumberRange {
-                /** @param {Number} min @param {Number} max @param {Boolean} inclusiveMin @param {Boolean} invlusiveMax */
+                /** @param {Number} min @param {Number} max @param {Boolean} inclusiveMin @param {Boolean} inclusiveMax */
                 constructor(min, max, inclusiveMin, inclusiveMax) {
                     this.min = min;
                     this.max = max;
@@ -128,15 +110,16 @@
                 }
             }
             class Item {
-                /** @param {Number} itemVolume @param {String} itemName @param {Number} cost */
-                constructor(itemVolume, itemName, cost) {
+                /** @param {Number} itemVolume @param {String} itemName @param {Number} cost @param {String} type */
+                constructor(itemVolume, itemName, cost, type) {
                     this.volume = itemVolume;
                     this.name = itemName;
                     this.sellValue = cost;
+                    this.type = type;
                 }
                 /** @param {Number} amount */
                 inventoryPush(amount) {
-                    playerData.inventory.addItem(this.name, amount);
+                    playerData.addItem(this.name, amount);
                 }
             }
             class MapComponent {
@@ -170,7 +153,7 @@
             class CraftableItem extends Item {
                 /** @param {Number} itemVolume @param {String} itemName @param {Object[]} costs @param {String} costs[].item @param {Number} costs[].amount @param {Number} multiplier @param {Number} sellValue*/
                 constructor(itemVolume, itemName, costs, multiplier = 1, sellValue/*, tier */) {
-                    super(itemVolume, itemName, sellValue);
+                    super(itemVolume, itemName, sellValue, 'craftable');
                     this.costs = costs;
                     this.craftMultiplier = multiplier;
                     //this.craftingTier = tier;
@@ -181,6 +164,7 @@
                 /** @param {Number} toolVolume @param {String} toolName @param {Object[]} costs @param {String} costs[].item @param {Number} costs[].amount @param {Object} miningPerks @param {Number} miningPerks.speed @param {Number} miningPerks.returns @param {Number} miningPerks.tier*/
                 constructor(toolVolume, toolName, costs, miningPerks, sellValue) {
                     super(toolVolume, toolName, costs, 1, sellValue);
+                    this.type = 'tool';
                     this.perks = {
                         mining: miningPerks,
                     }
@@ -198,15 +182,20 @@
                 }
             }
             class MapTile extends MapComponent {
-                /** @param {Number} x @param {Number} y @param {String} biome @param {Number[]} prevalenceOffset @param {Number} sizeX @param {Number} sizeY */
-                constructor(x = 0, y = 0, biome, prevalenceOffset, sizeX = 1, sizeY = 1) {
+                /** @param {Number} x @param {Number} y @param {String} biome @param {Number[]} prevalenceOffset @param {Number} richness @param {Number} sizeX @param {Number} sizeY */
+                constructor(x = 0, y = 0, biome, prevalenceOffset, richness, sizeX = 1, sizeY = 1) {
                     super(x, y);
                     this.biome = biome;
                     /** @type {Object.<string, Number>} */
                     this.prevalences = {}
                     this.sizeX = sizeX;
                     this.sizeY = sizeY;
-                    this.building = 'none';
+                    this.tileData = {
+                        /** @typedef {Object} BuildingDataObject @property {String} name @property {String} type */
+                        /** @type {Object.<string, BuildingDataObject>} */
+                        buildingData: {},
+                        materialDensity: richness
+                    };
                     this.#offsetInit(prevalenceOffset);
                 }
                 /** @param {Number[]} offsets */
@@ -219,6 +208,9 @@
                 static makeCoords(x, y) {
                     return `x${String(x)}y${String(y)}`
                 }
+                get buildings() {
+                    return Object.keys(this.tileData.buildingData).map(value => this.tileData.buildingData[value]);
+                }
             }
             class NaturalBuilding {
                 /** @param {String} buildingName @param {Number} spawnChance @param {Number} sizeX @param {Number} sizeY */
@@ -229,8 +221,9 @@
                     this.sizeY = sizeY;
                 }
                 /** @callback spawnCallback @param {MapTile} tile @returns {Boolean} */
-                /** @param {spawnCallback} spawnRequirements @param {Number} sizeX @param {Number} sizeY */
-                spawn(spawnRequirements, x, y) {
+                /** @summary spawns the building if spawnRequirements() returns true and condenses extraInit like key-value pairs
+                 *  @param {spawnCallback} spawnRequirements @param {Number} sizeX @param {Number} sizeY @param {Array[]} extraInit  */
+                spawn(spawnRequirements, x, y, extraInit) {
                     const coords = MapTile.makeCoords(x, y);
                     const tile = map[coords];
                     if (Math.random() > this.spawnChance) {
@@ -242,19 +235,40 @@
                     if (!spawnRequirements(tile)) {
                         return;
                     }
-                    tile.building = this.name;
+                    tile.tileData.buildingData[this.name] = Object.assign({ name: this.name, type: 'natural' }, Object.fromEntries(extraInit));
+                }
+            }
+            class Building {
+                /** @typedef {Object} cost @property {Number} amount @property {String} name */
+                /** @param {String} buildingName */
+                constructor(buildingName, costs, size = [1, 0]) {
+                    this.name = buildingName;
+                    this.costs = costs;
+                    [this.sizeX, this.sizeY] = size;
                 }
             }
             //for v0.7
             class Biome {
-                /** @param {String} name @param {Number[]} offsets */
-                constructor(name, offsets, skeweringX = 0, skeweringY = 0) {
+                /** @param {String} name @param {Number[][]} offsets */
+                constructor(name, offsets, likelihood = 1, skeweringX = 0, skeweringY = 0) {
                     this.name = name;
                     this.prevalenceOffsets = offsets;
+                    this.likelihood = likelihood;
                     this.skewX = skeweringX;
                     this.skewY = skeweringY;
                 }
             }
+            const biomes = [
+                new Biome('plains', [[0, 1], [1, 2], [0, 1], [0, 2], [0, 0], [-1, 0]], 0.3, 0, 0),
+                new Biome('forest', [[2, 2], [3, 4], [0, 0], [2, 2], [0, 0], [0, 1]], 0.2, -600, 600),
+                new Biome('tropical forest', [[-2, -1], [3, 5], [-1, 0], [3, 5], [0, 0], [0, 0]], 0.1, -1000, 1),
+                new Biome('savannah', [[0, 1], [2, 3], [0, 0], [1, 2], [0, 0], [0, 1]], 0.1, 600, 400),
+                new Biome('desert', [[0, 0], [-1, 0], [0, 0], [0, 0], [0, 0], [0, 0]], 0.1, 600, 1),
+                new Biome('mountain', [[2, 3], [-1, -1], [0, 0], [0, 0], [0, 0], [0, 0]], 0.1, 0, 2500),
+                new Biome('tundra', [[0, 0], [-1, -1], [0, 0], [-2, -1], [0, 0], [0, 1]], 0.05, 0, 2250),
+                new Biome('wasteland', [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]], 0.025, 0, 4000),
+                new Biome('volcano', [[14, 15], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]], 0.025, 800, 0)
+            ];
         </script>
         <!-- functions -->
         <script>
@@ -266,6 +280,7 @@
                 /** @param {HTMLElement} element */
                 elementText: function (element, text) { element.innerHTML = text; }
             }
+            /** @param {String} message */
             function showPopup(message) {
                 const popup = EM.elementID('popup');
                 popup.innerText = message;
@@ -274,19 +289,20 @@
                     popup.style.opacity = 0;
                 }, 500);
             }
+            /** @type {HTMLElement} */
+            let storage = EM.elementID('console1');
+            /** @type {HTMLElement} */
+            let storage2 = EM.elementID('consolee1');
             /** @param {String} input */
-            function updateText(input, cons = 1) {
-                const whichconsole = cons == 1 ? '' : 'e';
-                const whichcons = cons == 1 ? '11' : '10';
-                for (let i = 1; i < Number(whichcons); i++) {
-                    EM.elementID('console' + whichconsole + String(i)).innerHTML = EM.elementID('console' + whichconsole + String(i + 1)).innerHTML;
-                }
-                EM.elementID('console' + whichconsole + whichcons).innerHTML = '> ' + input;
-            }
-            /** @param {String} input */
-            function updateLine(input, line = 1, cons = 1) {
-                const whichconsole = cons == 1 ? '' : 'e';
-                EM.elementID('console' + whichconsole + String(line)).innerHTML = '> ' + input;
+            function updateText(input, cons = 1, trash = false) {
+                const cl = `consol${'e'.repeat(cons)}text`;
+                const id = `consol${'e'.repeat(cons)}`;
+                const element = document.createElement('div');
+                element.className = cl;
+                element.innerText = `[${playerData.x}, ${playerData.y}]-> ${input}`
+                EM.elementID(id).insertBefore(element, cons == 1 ? storage : storage2);
+                cons == 1 ? storage = element : storage2 = element;
+                return element;
             }
             /** @typedef {Object} mat @property {String} name @property {Number} amount */
             /** @param {MapTile} tile */
@@ -312,36 +328,74 @@
                 const materials = Object.values(materialOutput);
                 setTimeout(() => {
                     materials.forEach((material) => {
-                        playerData.inventory.addItem(material.name, Math.floor(material.amount));
+                        playerData.addItem(material.name, Math.floor(material.amount));
                     });
                 }, (1000 * Number(input)) / speed);
                 return materials;
             }
-            function doesExist(value) { return value == undefined ? false : true; }
+            function newTile(x = 0, y = 0, overwrite = false) {
+                return new Promise(
+                    (resolve, reject) => {
+                        const biomeChances = biomes.map(value => value.likelihood);
+                        const randomBiome = function(){const random = Math.random(); let sum = 0; for (let i = 0; i < biomeChances.length; i++) {sum += biomeChances[i]; if (random <= sum) {return biomes[i]}}}();
+                        const prevalences = randomBiome.prevalenceOffsets.map((value) => randomNumber(value[0], value[1]));
+                        const name = MapTile.makeCoords(x, y);
+                        if (!map.hasOwnProperty(name) || overwrite) {
+                            map[name] = new MapTile(x, y, randomBiome.name, prevalences, randomNumber(10, 14) / 10, randomNumber(1, 3), randomNumber(1, 3));
+                        }
+                        else if (!overwrite) {
+                            reject('tile already spawned');
+                        }
+                        STRUCTURES_1.village.spawn(STRUCTURES_1.spawnVillage, x, y, [['workers', 0], ['cashMulti', randomNumber(10, 15) / 10]]);
+                        if(map.hasOwnProperty(name)) {
+                            resolve('spawned tile');
+                        }
+                    }
+                )
+            }
+            /** @param {String} citem @param {Number} amount @param {Boolean} log */
+            function craftItem(citem, amount, log) {
+                const index = ITEMS_1.findIndex((value) => { return value.name == citem.replace('-', ' ') });
+                let mats = 0;
+                if (index != -1) {
+                    const item = ITEMS_1[index];
+                    let matsused = [];
+                    item.costs.forEach((value) => {
+                        const amt = value.amount;
+                        const itemn = value.item;
+                        const remove = playerData.removeItem(itemn, amt);
+                        const message = (remove == ERROR_NOITEM) 
+                            ? `you don't have any ${itemn}, you need ${amt}`
+                            : (remove == ERROR_NOTENOUGHITEM)
+                            ? `you don't have enough ${itemn}, you need ${amt - playerData.getAmt(itemn)} more`
+                            : (matsused.push(value), mats++, '');
+                        !log || updateText(message, 1, message == '');
+                    });
+                    console.log(mats);
+                    mats == item.costs.length
+                        ? (playerData.addItem(item.name, item.craftMultiplier * amount), !log || updateText(`crafted ${amount} ${item.name}`))
+                        : matsused.forEach(material => playerData.addItem(material.item, material.amount));
+                    if (mats == 0) {return ERROR_NOINGREDIENTS} else if (mats < item.costs.length) {return ERROR_NOTENOUGHINGREDIENTS}
+                    item?.perksPush();
+                    return item;
+                }
+            }
+            function doesExist(value) { return !(value === undefined); }
             function randomNumber(min = 0, max = 1) { min = Math.ceil(min); max = Math.floor(max); return Math.round(Math.random() * (max - min) + min); }
-            function isDigit(string = '0') {return /^\d+$/.test(string);}
+            function isDigit(string = '0') { return /^\d+$/.test(string); }
         </script>
         <!-- data storage -->
         <script>
             //error constants
-            //playerdata
+            //crafting
+            const ERROR_NOINGREDIENTS = -1;
+            const ERROR_NOTENOUGHINGREDIENTS = -2; 
             //inventory
             const ERROR_NOITEM = -1;
             const ERROR_NOTENOUGHITEM = -2;
             const ERROR_NOTENOUGHSPACE = -3
-            // parser constants
-            const PARSER_NONE = 0;
-            const PARSER_MOVEONMAP = 1;
-            const PARSER_MINEAREA = 2;
-            const PARSER_CRAFT = 3;
-            const PARSER_CRAFTAMOUNT = 4;
-            const PARSER_SELL = 5;
-            const PARSER_SELLAMOUNT = 6;
-            const PARSER_RECIPEBROWSE = 7;
-            // secondary parser constants
-            const SPARSER_NONE = 0;
-            const SPARSER_MINEVILLAGE = 1;
-            const SPARSER_MININGVILLAGE = 2;
+            //return constants
+            const OK = 0;
             //sum summus
             //items
             /** @type {Array.<CraftableItem|Tool>} */
@@ -359,9 +413,28 @@
                 new CraftableItem(5, 'firestarting kit', [{ item: 'firewood', amount: 2 }, { item: 'flint', amount: 2 }], 1, 16),
                 new CraftableItem(3, 'hide clothes', [{ item: 'hide', amount: 6 }, { item: 'rope', amount: 1 }], 1, 16)
             ];
+            //player buildings
             //autogenerated buildings
             const STRUCTURES_1 = {
-                village: new NaturalBuilding('village', 0.075, 1, 1)
+                villageObj: { 
+                    structure: new NaturalBuilding('village', 0.075, 1, 1), 
+                    /** @param {MapTile} tile */
+                    spawnFunction(tile) {
+                        return ['forest', 'plains', 'savannah', 'tropical forest'].includes(tile.biome) && function() { 
+                            let canspawn = true;
+                            [[-1, 0], [1, 0], [0, -1], [0, 1]].forEach((value) => {
+                                const buildingcheckcoords = MapTile.makeCoords(tile.coordinates.x + value[0], tile.coordinates.y + value[1]); 
+                                if (typeof map[buildingcheckcoords] !== "undefined") {
+                                    canspawn = map[buildingcheckcoords].building !== 'none' ? false : canspawn;
+                                }}); 
+                                return canspawn; }(); }
+                },
+                get village() {
+                    return this.villageObj.structure;
+                },
+                get spawnVillage() {
+                    return this.villageObj.spawnFunction;
+                }
             }
         </script>
     </div>
@@ -373,7 +446,7 @@
                 lastInput: '',
                 doingAction: false,
                 location: {
-                    vector: new Vector2(randomNumber(-99, 99), randomNumber(-99, 99)),
+                    vector: new Vector2(randomNumber(1, 2) === 1 ? randomNumber(-800, -600) : randomNumber(600, 800), randomNumber(-99, 99)),
                     getCoords: function () {
                         return `x${String(this.vector.x)}y${String(this.vector.y)}`;
                     }
@@ -399,6 +472,7 @@
                             this.list.push(item);
                             this.listamounts.push(amount);
                         }
+                        return OK;
                     },
                     /** @param {String} item */
                     removeItem: function (item, amount = 1) {
@@ -419,6 +493,7 @@
                         else {
                             return ERROR_NOITEM;
                         }
+                        return OK;
                     },
                     /** @param {String} item */
                     getItemAmount: function (item) {
@@ -436,10 +511,40 @@
                         returns: 0,
                         tier: 0
                     }
+                },
+                get x() {
+                    return this.location.vector.x;
+                },
+                get y() {
+                    return this.location.vector.y;
+                },
+                get mapTile() {
+                    return map[this.location.getCoords()];
+                },
+                get mapBuildings() {
+                    return this.mapTile.tileData.buildingData;
+                },
+                /** @type {Function} */
+                removeItem(item, amount = 1) {
+                    return this.inventory.removeItem(item, amount);
+                },
+                addItem(item, amount = 1) {
+                    return this.inventory.addItem(item, amount);
+                },
+                getAmt(item) {
+                    return this.inventory.getItemAmount(item);
+                },
+                /** @param {String} item1 @param {Number} amount1 @param {String} item2 @param {Number} amount2 */
+                exchangeItem(item1, amount1, item2, amount2) {
+                    const canExchange = this.removeItem(item1, amount1);
+                    if (typeof canExchange === "undefined") {
+                        this.addItem(item2, amount2);
+                    }
+                    else {
+                        return canExchange;
+                    }
                 }
             }
-            let parserKey = PARSER_NONE;
-            let secondaryKey = SPARSER_NONE;
             EM.elementID('submit').addEventListener("click", (e) => {
                 inputParser(EM.elementID('consoleinput').value);
                 EM.elementID('submit').animate([
@@ -453,307 +558,184 @@
             })
             EM.elementID('consoleinput').addEventListener("keydown", (e) => {
                 if (e.key == 'Enter') {
-                    inputParser(e.target.value);
+                    const gen = inputParser();
+                    gen.next()
+                    gen.next(e.target.value);
                 }
                 if (e.key == 'ArrowUp') {
                     e.target.value = playerData.lastInput;
                 }
             });
-            /**  @param {String} value */
-            function inputParser(value) {
-                if (playerData.inventory.getItemAmount('coin') >= 250 && playerData.inventory.getItemAmount('pro gamer certificate') == ERROR_NOITEM) {
-                    playerData.inventory.addItem('pro gamer certificate');
-                    updateText('you got a pro gamer certificate', 2);
-                }
-                let text = value.toLowerCase();
-                playerData.lastInput = text;
-                EM.elementID('consoleinput').value = '';
-                updateText(text);
-                if (text == 'location' && parserKey == PARSER_NONE) {
-                    updateText(`you are at x: ${String(playerData.location.vector.x)} y: ${String(playerData.location.vector.y)}`);
-                    updateText(`your biome is ${map[`x${String(playerData.location.vector.x)}y${String(playerData.location.vector.y)}`].biome}`);
-                }
-                if ((text == 'move' && parserKey == PARSER_NONE) || parserKey == PARSER_MOVEONMAP) {
-                    if (parserKey == PARSER_MOVEONMAP) {
+            /**  @param {String} parseInput */
+            function* inputParser() {
+                while (true) {
+                    if (playerData.getAmt('coin') >= 250 && playerData.inventory.getItemAmount('pro gamer certificate') == ERROR_NOITEM) {
+                        playerData.addItem('pro gamer certificate');
+                        updateText('you got a pro gamer certificate', 2);
+                    }
+                    /** @type {String} t */
+                    let t = yield 0;
+                    let commands = t.toLowerCase().split(' ');
+                    playerData.lastInput = t;
+                    EM.elementID('consoleinput').value = '';
+                    updateText(t);
+
+                    if (commands[0] == 'location') {
+                        updateText(`you are at x: ${String(playerData.x)} y: ${String(playerData.y)}`);
+                        updateText(`your biome is ${playerData.mapTile.biome}`);
+                    }
+
+                    if (commands[0] == 'move') {
                         let coords = playerData.location;
-                        if (text == 'up') {
-                            playerData.location.vector.y += 1;
-                            setTimeout(() => {
-                                if (map[playerData.location.getCoords()].building == 'village') {
-                                    updateText('there is a village on this tile');
-                                }
-                            }, 101);
+                        const directions = {
+                            north: [0, 1],
+                            east: [1, 0],
+                            south: [0, -1],
+                            west: [0, 1],
+                            northeast: [1, 1],
+                            northwest: [-1, 1],
+                            southeast: [1, -1],
+                            southwest: [-1, -1]
                         }
-                        else if (text == 'down') {
-                            playerData.location.vector.y -= 1;
-                            setTimeout(() => {
-                                if (map[playerData.location.getCoords()].building == 'village') {
-                                    updateText('there is a village on this tile');
-                                }
-                            }, 101);
-                        }
-                        else if (text == 'left') {
-                            playerData.location.vector.x -= 1;
-                            setTimeout(() => {
-                                if (map[playerData.location.getCoords()].building == 'village') {
-                                    updateText('there is a village on this tile');
-                                }
-                            }, 101);
-                        }
-                        else if (text == 'right') {
-                            playerData.location.vector.x += 1;
-                            setTimeout(() => {
-                                if (map[playerData.location.getCoords()].building == 'village') {
-                                    updateText('there is a village on this tile');
-                                }
-                            }, 101);
-                        }
-                        parserKey = PARSER_NONE;
+                        playerData.location.vector.x += directions?.[commands[1]][0];
+                        playerData.location.vector.y += directions?.[commands[1]][1];
+                        !playerData.mapBuildings.village || updateText('there is a village on this tile');
                     }
-                    else {
-                        updateText('input direction');
-                        parserKey = PARSER_MOVEONMAP;
-                    }
-                }
-                if ((text == 'mine' && parserKey == PARSER_NONE) || parserKey == PARSER_MINEAREA) {
-                    const input = isDigit(text) ? Number(text) <= 60 ? Number(text) : 60 : 1;
-                    if (!playerData.doingAction) {
-                        if (parserKey == PARSER_MINEAREA) {
-                            if (secondaryKey === SPARSER_MINEVILLAGE) {
-                                secondaryKey = text == 'yes' ?  SPARSER_MININGVILLAGE : SPARSER_NONE;
-                                parserKey = text == 'yes' ? PARSER_MINEAREA : PARSER_NONE;
+
+                    if (commands[0] == 'mine') {
+                        const input = isDigit(commands[1]) ? Number(commands[1]) <= 60 ? Number(commands[1]) : 60 : 1;
+                        if (!playerData.doingAction) {
+                            let multiplier = 1;
+                            let canPay = false;
+                            const village = Object.values(playerData.mapBuildings).map(value => value.name).includes('village');
+                            if (village) {
+                                updateText('do you still want to mine, it\'ll cost money for mining in a village but you get more resources');
+                                const input = yield 0;
+                                const enoughMoney = playerData.inventory.removeItem('coin', Math.ceil(input * 1.25));
+                                multiplier = 1.5;
+                                canPay = typeof enoughMoney === "undefined" && commands[2] === 'yes';
                             }
-                            else if (secondaryKey === SPARSER_NONE || secondaryKey === SPARSER_MININGVILLAGE) {
-                                let multiplier = 1;
-                                if (secondaryKey == SPARSER_MININGVILLAGE) {
-                                    const enoughMoney = playerData.inventory.removeItem('coin', Math.ceil(input * 1.25));
-                                    multiplier = secondaryKey === SPARSER_MININGVILLAGE && enoughMoney !== ERROR_NOITEM && enoughMoney !== ERROR_NOTENOUGHITEM ? 1.5 : 1;
-                                }
-                                // /** @type {Object} */
-                                EM.elementID('consolee1').innerHTML = '> []';
+                            if (canPay || !village) {
+                                const div = updateText('[]', 2);
                                 playerData.doingAction = true;
                                 function updateProgressBar(progress) {
-                                    const progressBarElement = EM.elementID('consolee1');
                                     const progressBarLength = 10;
-                                    const progressBarString = "> [" + "-".repeat(progressBarLength * progress) + "]";
-                                    progressBarElement.innerHTML = progressBarString;
-                                    }
-                                    const miningTime = 1000 * input / playerData.perks.mining.speed;
-                                    let progress = 0;
-                                    playerData.doingAction = true;
-                                    const miningInterval = setInterval(() => {
+                                    const progressBarString = `[${playerData.x}, ${playerData.y}]-> [${"-".repeat(progressBarLength * progress)}]`;
+                                    div.innerHTML = progressBarString;
+                                }
+                                const miningTime = 1000 * input / playerData.perks.mining.speed;
+                                let progress = 0;
+                                playerData.doingAction = true;
+                                const miningInterval = setInterval(() => {
                                     progress += 0.1;
                                     updateProgressBar(progress);
                                     if (progress >= 1) {
                                         clearInterval(miningInterval);
                                         playerData.doingAction = false;
                                         updateProgressBar(1);
-                                        EM.elementID('consolee1').innerHTML = '> [Mining Done]';
+                                        div.innerHTML = `[${playerData.x}, ${playerData.y}]-> [Mining Done]`;
                                     }
-                                    }, miningTime / 10);
+                                }, miningTime / 10);
                                 let inventory = playerData.inventory;
-                                const output = mineLocation(text, map[playerData.location.getCoords()], multiplier, playerData.perks.mining.speed);
-                                let string = '';
-                                output.forEach((value, index, arr) => {string = `${string} ${String(value.amount)} ${value.name}${index + 1 == arr.length && arr.length > 1 ? ', and' : arr.length == 1 ? '' : ', '}`});
+                                const output = mineLocation(input, playerData.mapTile, multiplier, playerData.perks.mining.speed);
+                                const itemList = output.map((item, index, arr) => `${item.amount} ${item.name}${(index + 2 == arr.length && arr.length == 2) ? ' and ' : (arr.length == 1 ? '' : arr.length > 2 && index + 2 == arr.length ? ', and ' : arr.length != 2 && index + 1 != arr.length ? ', ' : '')}`).join('');
                                 setTimeout(() => {
-                                    updateLine(`you got ${string}`, 2, 2);
+                                    updateText(`you got ${itemList}`, 2);
                                 }, (1000 * Number(input) / playerData.perks.mining.speed) + 1);
-                                parserKey = PARSER_NONE;
                             }
                         }
                         else {
-                            const build = map[playerData.location.getCoords()].building;
-                            updateText(build === 'village' ? 'do you still want to mine, it\'ll cost money for mining in a village but you get more resources' : 'how many times to mine');
-                            parserKey = PARSER_MINEAREA;
-                            secondaryKey = build === 'village' ? SPARSER_MINEVILLAGE : SPARSER_NONE;
+                            updateText('already doing something');
                         }
                     }
-                    else {
-                        updateText('already doing something');
+
+                    if (commands[0] == 'clear') {
+                        EM.elementID('console').innerHTML = '<div id="console1"></div>'
+                        storage = EM.elementID('console1');
                     }
-                }
-                if (text == 'clear' && parserKey == PARSER_NONE) {
-                    for (let i = 0; i < 11; i++) {
-                        updateText('');
-                    }
-                }
-                if (text == 'inventory' && parserKey == PARSER_NONE) {
-                    let string = 'you have ';
-                    for (let i = 0; i < playerData.inventory.list.length; i++) {
-                        const item = playerData.inventory.list[i];
-                        const amount = playerData.inventory.listamounts[i];
-                        if (i == playerData.inventory.list.length - 1 && playerData.inventory.list.length >= 3) {
-                            string = `${string} ${amount} ${item}`;
-                        }
-                        else if (i != playerData.inventory.list.length - 1 && playerData.inventory.list.length >= 3) {
-                            string = `${string} ${amount} ${item}, `
-                        }
-                        else if (i == 1 && playerData.inventory.list.length == 2) {
-                            string = `${string} and ${amount} ${item}`;
-                        }
-                        else if (i == 0 && playerData.inventory.list.length == 2) {
-                            string = `${string} ${amount} ${item} `;
-                        }
-                        else if (i == 0 && playerData.inventory.list.length == 1) {
-                            string = `${string} ${amount} ${item}`;
-                        }
-                    }
-                    if (playerData.inventory.list.length == 0) {
-                        string = 'you have nothing';
-                    }
-                    updateText(string);
-                }
-                if ((text == 'craft' && parserKey == PARSER_NONE) || parserKey == PARSER_CRAFT) {
-                    if (parserKey == PARSER_CRAFT) {
-                        const index = ITEMS_1.findIndex((value) => { return value.name == text });
-                        let mats = 0;
-                        if (index != -1) {
-                            for (let i = 0; i < ITEMS_1[index].costs.length; i++) {
-                                const remove = playerData.inventory.removeItem(ITEMS_1[index].costs[i].item, ITEMS_1[index].costs[i].amount);
-                                if (remove == ERROR_NOITEM) {
-                                    updateText(`you don't have any ${ITEMS_1[index].costs[i].item}, you need ${ITEMS_1[index].costs[i].amount}`);
-                                }
-                                else if (remove == ERROR_NOTENOUGHITEM) {
-                                    updateText(`you don't have enough ${ITEMS_1[index].costs[i].item}, you need ${ITEMS_1[index].costs[i].amount - playerData.inventory.getItemAmount(ITEMS_1[index].costs[i].item)} more`)
-                                }
-                                else {
-                                    mats++;
-                                }
+                    
+                    if (commands[0] == 'inventory') {
+                        let string = 'you have ';
+                        for (let i = 0; i < playerData.inventory.list.length; i++) {
+                            const item = playerData.inventory.list[i];
+                            const amount = playerData.inventory.listamounts[i];
+                            if (i == playerData.inventory.list.length - 1 && playerData.inventory.list.length >= 3) {
+                                string = `${string} ${amount} ${item}`;
                             }
-                            if (mats == ITEMS_1[index].costs.length) {
-                                playerData.inventory.addItem(ITEMS_1[index].name, ITEMS_1[index].craftMultiplier);
+                            else if (i != playerData.inventory.list.length - 1 && playerData.inventory.list.length >= 3) {
+                                string = `${string} ${amount} ${item}, `
                             }
-                            if (typeof ITEMS_1[index].perksPush === "function" && !(ITEMS_1[index].isUsed())) {
-                                ITEMS_1[index].perksPush();
+                            else if (i == 1 && playerData.inventory.list.length == 2) {
+                                string = `${string} and ${amount} ${item}`;
+                            }
+                            else if (i == 0 && playerData.inventory.list.length == 2) {
+                                string = `${string} ${amount} ${item} `;
+                            }
+                            else if (i == 0 && playerData.inventory.list.length == 1) {
+                                string = `${string} ${amount} ${item}`;
                             }
                         }
-                        /*
-                        costs are an array of objects with the properties item and amount
-                        item is the name of the item needed to craft
-                        amount is the amount of the item needed to craft
-                        */
-                        parserKey = PARSER_NONE;
+                        if (playerData.inventory.list.length == 0) {
+                            string = 'you have nothing';
+                        }
+                        updateText(string);
                     }
-                    else {
-                        updateText('what to craft');
-                        parserKey = PARSER_CRAFT;
+
+                    if (commands[0] == 'craft') {
+                        if (commands.length < 3) {
+                            updateText('craft syntax: craft <item> <amount>');
+                        }
+                        else {
+                            const crafted = craftItem(commands[1], commands[2], true);
+                            !(crafted instanceof CraftableItem) || updateText(`crafted ${commands[2]} ${crafted.name}`);
+                        }
                     }
-                }
-                if ((text == 'recipes' && parserKey == PARSER_NONE) || parserKey == PARSER_RECIPEBROWSE) {
-                    if (parserKey == PARSER_NONE) {
-                        for (let i = 0; i < 9 && i < ITEMS_1.length; i++) {
-                            const value = ITEMS_1[i];
-                            let string = `${value.name} costs:`
-                            value.costs.forEach((valueb, index) => {
-                                if (true) {
-                                    string = `${string} ${valueb.amount} ${valueb.item}`
+
+                    if (commands[0] == 'sell') {
+                        if (commands.length < 3) {
+                            updateText('sell syntax: sell <item> <amount>');
+                        }
+                        else {
+                            const amount = isNaN(Number(commands[2])) ? 1 : Number(commands[2]);
+                            const search = commands[1].replace('-', ' ');
+                            const items = ITEMS_1.concat(MATERIALS_1); 
+                            const item = items.find(value => value.name == search);
+                            if (playerData.inventory.list.includes(search) && typeof item !== "undefined") {
+                                if (playerData.inventory.getItemAmount(search) >= amount) {
+                                    playerData.exchangeItem(search, amount, 'coin', item.sellValue * amount);
                                 }
-                            })
-                            updateText(string);
-                            if (i == 8) {
-                                playerData.tempStorage = 8;
-                                updateText('do you want to go to the next page');
-                                parserKey = PARSER_RECIPEBROWSE;
                             }
                         }
                     }
-                    else if (parserKey == PARSER_RECIPEBROWSE) {
-                        if (text == 'no') {
-                            parserKey = PARSER_NONE;
-                        }
-                        else if (text == 'yes') {
-                            for (let i = 0; i < 10 && i + playerData.tempStorage < ITEMS_1.length; i++) {
-                                const value = ITEMS_1[i + playerData.tempStorage];
-                                let string = `${value.name} costs:`
-                                value.costs.forEach((valueb, index) => {
-                                    if (true) {
-                                        string = `${string} ${valueb.amount} ${valueb.item}`
-                                    }
-                                })
-                                if (i == 9 && i + playerData.tempStorage != ITEMS_1.length - 1) {
-                                    playerData.tempStorage += 9;
-                                    updateText('do you want to go to the next page');
+                    
+                    if (commands[0] == 'hire') {
+                        const tile = map[playerData.location.getCoords()];
+                        if (tile.buildings.village) {
+                            const downPayment = playerData.inventory.removeItem('coin', 20);
+                            if ((downPayment !== ERROR_NOITEM) && (downPayment !== ERROR_NOTENOUGHITEM)) {
+                                if (tile.buildings.village.workers < 5) {
+                                    tile.buildings.willage.workers++;
+                                    playerData.workers.miners.push({ coords: Vector2.addVectors([playerData.location.vector, new Vector2(randomNumber(0, 1) == 1 ? 1 : -1, randomNumber(0, 1) == 1 ? 1 : -1)]), multiplier: randomNumber (10, 12) / 10, speed: randomNumber(50, 60) / 100 });
                                 }
-                                else if (i + playerData.tempStorage == ITEMS_1.length - 1) {
-                                    parserKey = PARSER_NONE;
-                                }
-                                updateText(string);
+                            }
+                            else {
+                                updateText('you dont have enough money to hire someone')
                             }
                         }
+                        else {
+                            updateText('you can\'t hire someone out of thin air')
+                        }
                     }
-                }
-                if ((text === 'sell' && parserKey === PARSER_NONE) || parserKey === PARSER_SELL || parserKey === PARSER_SELLAMOUNT) {
-                    switch (parserKey) {
-                        case PARSER_SELL:
-                            if (text === 'cancel') {
-                                parserKey = PARSER_NONE;
-                            } else {
-                                const exists = playerData.inventory.list.includes(text);
-                                if (exists) {
-                                    playerData.tempStorage = text;
-                                    const itemAmount = playerData.inventory.getItemAmount(text);
-                                    updateText(`input how many to sell, you have ${itemAmount} ${text}`);
-                                    parserKey = PARSER_SELLAMOUNT;
-                                }
-                                else {
-                                    updateText('you don\'t have any of that')
-                                }
-                                
-                            }
-                            break;
-                        case PARSER_SELLAMOUNT:
-                            const mat = MATERIALS_1.find(value => value.name === playerData.tempStorage);
-                            const item = ITEMS_1.find(value => value.name === playerData.tempStorage);
-                            let amount;
-                            if (typeof mat !== 'undefined') {
-                                amount = playerData.inventory.getItemAmount(mat.name);
-                                const enoughmat = playerData.inventory.removeItem(mat.name, Number(text));
-                                if (enoughmat !== ERROR_NOTENOUGHITEM) {
-                                playerData.inventory.addItem('coin', mat.sellValue * Number(text));
-                                updateText(`you got ${mat.sellValue * Number(text)} coins`);
-                                } else {
-                                playerData.inventory.addItem('coin', mat.sellValue * amount);
-                                updateText(`you got ${mat.sellValue * amount} coins`);
-                                playerData.inventory.removeItem(mat.name, amount);
-                                }
-                            }
-                            if (typeof item !== 'undefined') {
-                                amount = playerData.inventory.getItemAmount(item.name);
-                                const enoughitem = playerData.inventory.removeItem(item.name, Number(text));
-                                if (enoughitem !== ERROR_NOTENOUGHITEM) {
-                                playerData.inventory.addItem('coin', item.sellValue * Number(text));
-                                updateText(`you got ${item.sellValue * Number(text)} coins`);
-                                } else {
-                                playerData.inventory.addItem('coin', item.sellValue * amount);
-                                updateText(`you got ${item.sellValue * amount} coins`);
-                                playerData.inventory.removeItem(item.name, amount);
-                                }
-                            }
-                            parserKey = PARSER_NONE;
-                        break;
-                        default:
-                        updateText('input what to sell, or say cancel to cancel');
-                        parserKey = PARSER_SELL;
-                        break;
-                    }
-                }
-                if (text == 'hire') {
-                    const downPayment = playerData.inventory.removeItem('coin', 20);
-                    if (downPayment !== ERROR_NOITEM && downPayment !== ERROR_NOTENOUGHITEM) {
-                        playerData.workers.miners.length < 3 ? playerData.workers.miners.push({ coords: playerData.location.vector, multiplier: randomNumber (10, 12) / 10, speed: randomNumber(50, 60) / 100 }) : updateText('you can only have 3 workers');
-                    }
-                    else {
-                        updateText('you dont have enough money to pay someone to start working')
-                    }
-                }
-                if (text == 'tset') {
-                    playerData.inventory.addItem('coin', 20);
-                    MATERIALS_1.forEach((value) => {
-                        playerData.inventory.addItem(value.name, 999);
-                    });
-                    ITEMS_1.forEach((value) => {
-                        playerData.inventory.addItem(value.name, 999);
-                    });
+
+                    // if (commands[0] == 'tset') {
+                    //     playerData.addItem('coin', 20);
+                    //     MATERIALS_1.forEach((value) => {
+                    //         playerData.addItem(value.name, 999);
+                    //     });
+                    //     ITEMS_1.forEach((value) => {
+                    //         playerData.addItem(value.name, 999);
+                    //     });
+                    // }
                 }
             }
         </script>
@@ -764,37 +746,7 @@
                 let chosen = false;
                 setInterval(() => {
                     if (!map.hasOwnProperty(playerData.location.getCoords())) {
-                        //eventually use algorithm based on material's stats and what biomes its in to calculate offsets
-                        const biomes = [
-                            { name: 'plains', prevalenceOffset: [[0, 1], [1, 2], [0, 1], [0, 2], [0, 0], [-1, 0]], likelihood: 3 },
-                            { name: 'tundra', prevalenceOffset: [[0, 0], [-1, -1], [0, 0], [-2, -1], [0, 0], [0, 1]], likelihood: 0.5},
-                            { name: 'wasteland', prevalenceOffset: [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]], likelihood: 0.1 },
-                            { name: 'savannah', prevalenceOffset: [[0, 1], [2, 3], [0, 0], [1, 2], [0, 0], [0, 1]], likelihood: 1 },
-                            { name: 'tropical forest', prevalenceOffset: [[-2, -1], [3, 5], [-1, 0], [3, 5], [0, 0], [0, 0]], likelihood: 1 },
-                            { name: 'forest', prevalenceOffset: [[2, 2], [3, 4], [0, 0], [2, 2], [0, 0], [0, 1]], likelihood: 2 },
-                            { name: 'desert', prevalenceOffset: [[0, 0], [-1, 0], [0, 0], [0, 0], [0, 0], [0, 0]], likelihood: 1 },
-                            { name: 'mountain', prevalenceOffset: [[2, 3], [-1, -1], [0, 0], [0, 0], [0, 0], [0, 0]], likelihood: 1 },
-                            { name: 'volcano', prevalenceOffset: [[14, 15], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]], likelihood: 0.1 },
-                        ];
-                        const randomBiome = biomes.find(biome => Math.random() < biome.likelihood / 12);
-                        const prevalences = function() { let returnArr = []; randomBiome.prevalenceOffset.forEach((value) => { returnArr.push(randomNumber(value[0], value[1])) }); return returnArr }()
-                        const name = `x${String(playerData.location.vector.x)}y${String(playerData.location.vector.y)}`;
-                        if (!map.hasOwnProperty(playerData.location.getCoords())) {
-                            map[name] = new MapTile(playerData.location.vector.x, playerData.location.vector.y, randomBiome.name, prevalences, randomNumber(1, 3), randomNumber(1, 3));
-                        }
-                        STRUCTURES_1.village.spawn((tile) => {
-                            return ['forest', 'plains', 'savannah', 'tropical forest'].includes(tile.biome) && function() { 
-                                let canspawn = true;
-                                [[-1, 0], [1, 0], [0, -1], [0, 1]].forEach((value) => {
-                                    const buildingcheckcoords = MapTile.makeCoords(tile.coordinates.x + value[0], tile.coordinates.y + value[1]); 
-                                    if (typeof map[buildingcheckcoords] !== "undefined") {
-                                        canspawn = map[buildingcheckcoords].building !== 'none' ? false : canspawn;
-                                    }
-                                });
-                                return canspawn;
-                            }();
-                            }, playerData.location.vector.x, playerData.location.vector.y);
-                        chosen = false;
+                        newTile(playerData.location.vector.x, playerData.location.vector.y, false).then((resolution) => {console.log(`${resolution} @ ${playerData.location.getCoords()}`)});
                     }
                 }, 100);
             }  
@@ -811,7 +763,7 @@
                         cantPay++;
                     }
                 });
-                cantPay > 0 ? showPopup(`you dont have enough money to pay ${String(cantPay)} of your workers`, 2) : '';
+                cantPay > 0 ? showPopup(`you dont have enough money to pay ${String(cantPay)} of your workers`, 2) : playerData.workers.miners.length == 0 || showPopup('paid all workers');
             }, 60000);
         </script>
     </div>
