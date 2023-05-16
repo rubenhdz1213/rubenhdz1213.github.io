@@ -13,18 +13,19 @@
 <body>
     <div id="popup">Your message here!</div>
     <div id="motc">
-        <h1>Mineral Madness</h1>
-        <!-- <p style="font-size: 0.85vw; color: red;" id="motcu">"U" before a version means it is unstable and/or unusable, while the number after the "U" tells you what is the current unstable build of that version*</p> -->
-        <h3 id="motctitle" style="line-height: 6px; font-size: 16px">MOTC<!-- <divisor style="color: red">U4*</divisor> --> 0.6.3</h3>
-        <div class="motctext" style="font-size: 10px">theres now a wiki with these changelogs on the <a href="https://github.com/rubenhdz1213/rubenhdz1213.github.io/wiki/">repository</a></div>
+        <h1 id="e">Mineral Madness</h1>
+        <p style="font-size: 0.85vw; color: red;" id="motcu">"U" before a version means it is unstable and/or unusable, while the number after the "U" tells you what is the current unstable build of that version*</p>
+        <h3 id="motctitle" style="line-height: 6px; font-size: 16px">MOTC<divisor style="color: red"> U1*</divisor> 0.6.4</h3>
+        <!-- <div class="motctext" style="font-size: 10px">theres now a wiki with these changelogs on the <a href="https://github.com/rubenhdz1213/rubenhdz1213.github.io/wiki/">repository</a></div>
         <div class="motctext" style="font-size: 10px;">you can now only hire at villages, and each village now has a set limit to how much you can hire, and they will mine one of the tiles adjacent to the village instead of where you're standing</div>
         <div class="motctext" style="font-size: 10px;">0.7 will now instead add several new features like automated crafting and exploring nearby areas at the cost of a few coins when at a village</div>
         <div class="motctext" style="font-size: 10px;">biome gen changing will be pushed to v0.15 or further</div>
-        <div class="motctext" style="font-size: 10px">0.6.3 refines map generation, patches bugs, makes the consoles more clean, and refines most of the game's code, while 0.6.4 will remake the classes from the ground up to be more readable and expandable</div>
-        <!-- <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext1">recipes command exists</p>
-        <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext2">crafting is fixed but perks from tools dont exist yet</p>
-        <p style="color: red; font-size: 12px; line-height: 1px;" id="motcutext3">there is now a cool looking submit button for mobile and stuff as well as a better looking input</p> -->
+        <div class="motctext" style="font-size: 10px">0.6.3 refines map generation, patches bugs, makes the consoles more clean, and refines most of the game's code, while 0.6.4 will remake the classes from the ground up to be more readable and expandable</div> -->
+        <div style="color: red; font-size: 10px;" id="motcutext1">only 3 classes have been worked on</div>
+        <div style="color: red; font-size: 10px;" id="motcutext2">they arent done though</div>
+        <div style="color: red; font-size: 10px;" id="motcutext3">there probably wont be very many new commits for a while</div>
     </div>
+    <br>
     <div id="console">
         <div id="console1"></div>
     </div>
@@ -40,86 +41,129 @@
         <!-- classes -->
         <script>
             class Vector2 {
-                /** @param {Number} x @param {Number} y @param {Number} rotation */
-                constructor(x, y, rotation) {
+                /** @param {Number} x @param {Number} y */
+                constructor(x, y) {
                     this.x = x;
                     this.y = y;
-                    this.rotation = rotation % 360;
                 }
-                /** @param {Vector2[]} vectors */
-                static addVectors(vectors) {
-                    let sumx = 0;
-                    let sumy = 0;
-                    let sumr = 0;
-                    for (let i = 0; i < vectors.length; i++) {
-                        sumx += vectors[i].x;
-                        sumy += vectors[i].y;
-                        sumr += vectors[i].rotation;
+                /** @param {...Vector2} vectors */
+                static addVectors(...vectors) {
+                    let x = 0;
+                    let y = 0;
+                    for (let vector of vectors) {
+                        x += vector.x;
+                        y += vector.y;
                     }
-                    return new Vector2(sumx, sumy, sumr);
+                    return new Vector2(x, y);
                 }
-                /** @param {Vector2[]} vectors */
-                static subtractVectors(vectors) {
-                    let diffx = 0;
-                    let diffy = 0;
-                    let diffr = 0;
-                    for (let i = 0; i < vectors.length; i++) {
-                        diffx -= vectors[i].x;
-                        diffy -= vectors[i].y;
-                        diffr -= vectors[i].rotation
+                /** @param {Vector2} startVector @param {...Vector2} vectors */
+                static subVectors(startVector, ...vectors) {
+                    let x = startVector.x;
+                    let y = startVector.y;
+                    for (let vector of vectors) {
+                        x -= vector.x;
+                        y -= vector.y;
                     }
-                    return new Vector2(diffx, diffy, diffr);
+                    return new Vector2(x, y);
+                }
+                /** @param {Vector2} vector @param {Number} scalar */
+                static scmulVector(vector, ...scalars) {
+                    let x = vector.x;
+                    let y = vector.y;
+                    for (let scalar of scalars) {
+                        x *= scalar;
+                        y *= scalar;
+                    }
+                    return new Vector2(x, y);
+                }
+                /** @param {...Vector2} vectors */
+                static dotmulVector(...vectors) {
+                    let x = 1;
+                    let y = 1;
+                    for (let vector of vectors) {
+                        x *= vector.x;
+                        y *= vector.y;
+                    }
+                    return x + y;
+                }
+                /** @param {Vector2} corner1 @param {Vector2} corner2 @param {Vector2} vector */
+                static withinRectangle(corner1, corner2, vector) {
+                    return new NumberRange(corner1.x, corner2.x).betweenRange(vector.x) && new NumberRange(corner1.y, corner2.y).betweenRange(vector.y);
+                }
+                /** @param {Vector2} vector1 @param {Vector2} vector2 */
+                static getAngle(vector1, vector2) {
+                    return Math.acos(Vector2.dotmulVector(vector1, vector2) / (vector1.magnitude * vector2.magnitude))
+                }
+                get magnitude() {
+                    return Math.sqrt(this.x * this.x + this.y + this.y);
+                }
+                get normalized() {
+                    return new Vector2(this.x /= this.magnitude, this.y /= this.magnitude);
+                }
+                normalize() {
+                    this.x = this.normalized.x;
+                    this.y = this.normalized.y;
                 }
             }
             class NumberRange {
-                /** @param {Number} min @param {Number} max @param {Boolean} inclusiveMin @param {Boolean} inclusiveMax */
-                constructor(min, max, inclusiveMin, inclusiveMax) {
-                    this.min = min;
-                    this.max = max;
-                    this.inclusiveMax = inclusiveMax;
-                    this.inclusiveMin = inclusiveMin;
+                /** @param {Number} min @param {Number} max */
+                constructor(min, max) {
+                    this.min = min <= max ? min : max;
+                    this.max = max >= min ? max : min;
                 }
                 /** @param {Number} number @param {Number} offsetMin @param {Number} offsetMax */
                 betweenRange(number, offsetMin = 0, offsetMax = 0) {
-                    let withinRange = true;
-                    if (this.inclusiveMin) {
-                        if (number < this.min + offsetMin) {
-                            withinRange = false;
-                        }
-                    }
-                    else {
-                        if (number <= this.min + offsetMin) {
-                            withinRange = false;
-                        }
-                    }
-                    if (this.inclusiveMax) {
-                        if (number > this.max + offsetMin) {
-                            withinRange = false;
-                        }
-                    }
-                    else {
-                        if (number >= this.max + offsetMin) {
-                            withinRange = false;
-                        }
-                    }
-                    return withinRange;
+                    return this.min < number && this.max >= number;
                 }
                 /** @param {Number} offsetMin @param {Number} offsetMax */
-                randomWithinRange(offsetMin, offsetMax) {
-                    return randomNumber(this.min + offsetMin, this.max + offsetMax);
+                randomWithinRange() {
+                    return randomNumber(this.min, this.max);
+                }
+                get length() {
+                    return this.max - this.min + 1;
+                }
+                /** @param {...NumberRange} ranges */
+                static unionOfRanges(...ranges) {
+                    let min = 0;
+                    let max = 0;
+                    for (let range of ranges) {
+                        if (min > range.min) { min = range.min; }
+                        if (max < range.max) { max = range.max; }
+                        }
+                    return new NumberRange(min, max);
+                }
+                /** @param {NumberRange} range1 @param {NumberRange} range2 */
+                static intersectionOfRanges(range1, range2) {
+                    const start = Math.max(range1.min, range2.min);
+                    const end = Math.min(range1.max, range2.max);
+                    return start <= end ? new NumberRange(start, end) : new NumberRange(0, 0);
                 }
             }
             class Item {
-                /** @param {Number} itemVolume @param {String} itemName @param {Number} cost @param {String} type */
-                constructor(itemVolume, itemName, cost, type) {
-                    this.volume = itemVolume;
+                /** @param {String} itemName @param {Number} value @param {String} description */
+                constructor(itemName, value, description) {
                     this.name = itemName;
-                    this.sellValue = cost;
-                    this.type = type;
+                    this.sellValue = value;
+                    this.desc = description;
                 }
                 /** @param {Number} amount */
-                inventoryPush(amount) {
-                    playerData.addItem(this.name, amount);
+                inventoryPush(amount = 1) {
+                    return playerData.addItem(this.name, amount);
+                }
+                /** @param {Number} amount */
+                inventoryPull(amount = 1) {
+                    return playerData.removeItem(this.name, amount);
+                }
+                drop(amount) {
+                    const data = map[playerData.location.getCoords()].tileData.itemData.split('|');
+                    const item = data.find((value, index) => {
+                        const itemspec = value.split('-');
+                        return itemspec[0] == this.name;
+                    });
+                    const remove = this.inventoryPull(amount);
+                    if (typeof item === "undefined" && [OK, ERROR_NOTENOUGHITEM].includes(remove)) {
+                        map[playerData.location.getCoords()].tileData.itemData = data + `${this.name}-${remove == OK ? amount : playerData.getAmt(this.name)}|`
+                    }
                 }
             }
             class MapComponent {
@@ -136,7 +180,7 @@
             class Material extends Item {
                 /** @param {Number} materialVolume @param {String} materialName @param {Number} basePrevalence @param {String[]} biomes @param {Number} cost*/
                 constructor(materialVolume, materialName, basePrevalence, biomes = ['all'], cost) {
-                    super(materialVolume, materialName, cost);
+                    super(materialName, cost);
                     this.basePrevalence = basePrevalence;
                     this.biomes = biomes;
                 }
@@ -152,8 +196,8 @@
             ];
             class CraftableItem extends Item {
                 /** @param {Number} itemVolume @param {String} itemName @param {Object[]} costs @param {String} costs[].item @param {Number} costs[].amount @param {Number} multiplier @param {Number} sellValue*/
-                constructor(itemVolume, itemName, costs, multiplier = 1, sellValue/*, tier */) {
-                    super(itemVolume, itemName, sellValue, 'craftable');
+                constructor(itemName, costs, multiplier = 1, sellValue/*, tier */) {
+                    super(itemName, sellValue);
                     this.costs = costs;
                     this.craftMultiplier = multiplier;
                     //this.craftingTier = tier;
@@ -162,8 +206,8 @@
             class Tool extends CraftableItem {
                 #hasBeenUsed = false;
                 /** @param {Number} toolVolume @param {String} toolName @param {Object[]} costs @param {String} costs[].item @param {Number} costs[].amount @param {Object} miningPerks @param {Number} miningPerks.speed @param {Number} miningPerks.returns @param {Number} miningPerks.tier*/
-                constructor(toolVolume, toolName, costs, miningPerks, sellValue) {
-                    super(toolVolume, toolName, costs, 1, sellValue);
+                constructor(toolName, costs, miningPerks, sellValue) {
+                    super(toolName, costs, 1, sellValue);
                     this.type = 'tool';
                     this.perks = {
                         mining: miningPerks,
@@ -194,6 +238,8 @@
                         /** @typedef {Object} BuildingDataObject @property {String} name @property {String} type */
                         /** @type {Object.<string, BuildingDataObject>} */
                         buildingData: {},
+                        /** @type {String} */
+                        itemData,
                         materialDensity: richness
                     };
                     this.#offsetInit(prevalenceOffset);
@@ -524,7 +570,6 @@
                 get mapBuildings() {
                     return this.mapTile.tileData.buildingData;
                 },
-                /** @type {Function} */
                 removeItem(item, amount = 1) {
                     return this.inventory.removeItem(item, amount);
                 },
@@ -545,6 +590,7 @@
                     }
                 }
             }
+
             EM.elementID('submit').addEventListener("click", (e) => {
                 inputParser(EM.elementID('consoleinput').value);
                 EM.elementID('submit').animate([
@@ -556,6 +602,7 @@
                     easing: "ease-in"
                 })
             })
+
             EM.elementID('consoleinput').addEventListener("keydown", (e) => {
                 if (e.key == 'Enter') {
                     const gen = inputParser();
@@ -566,7 +613,7 @@
                     e.target.value = playerData.lastInput;
                 }
             });
-            /**  @param {String} parseInput */
+
             function* inputParser() {
                 while (true) {
                     if (playerData.getAmt('coin') >= 250 && playerData.inventory.getItemAmount('pro gamer certificate') == ERROR_NOITEM) {
