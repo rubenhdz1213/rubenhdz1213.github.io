@@ -103,8 +103,18 @@ body {
   overflow-wrap: break-word;
   font-size: 1.1vw;
 }
-
-#popup {
+#input1, #input2 {
+  margin-top: 3px;
+  border-radius: 7px;
+  background-color: #535353;
+  border: none;
+  color: white;
+  width: calc(50% - 2px);
+}
+#popup1 {
+  transition: opacity 0.25s ease-in-out;
+}
+.popup {
   font-size: 1.05vw;
   position: fixed;
   bottom: 10px;

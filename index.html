@@ -11,19 +11,25 @@
 </head>
 
 <body>
-    <div id="popup">Your message here!</div>
+    <div class="popup" id="popup">Your message here!</div>
+    <div class="popup" id="popup1">
+        Your question here! 
+        <br>
+        <button id="input1">Input 1 here!</button>
+        <button id="input2">Input 2 here!</button>
+    </div>
     <div id="motc">
         <h1 id="e">Mineral Madness</h1>
         <p style="font-size: 0.85vw; color: red;" id="motcu">"U" before a version means it is unstable and/or unusable, while the number after the "U" tells you what is the current unstable build of that version*</p>
-        <h3 id="motctitle" style="line-height: 6px; font-size: 16px">MOTC<divisor style="color: red"> U1*</divisor> 0.6.4</h3>
+        <h3 id="motctitle" style="line-height: 6px; font-size: 16px">MOTC<divisor style="color: red"> U2*</divisor> 0.6.4</h3>
         <!-- <div class="motctext" style="font-size: 10px">theres now a wiki with these changelogs on the <a href="https://github.com/rubenhdz1213/rubenhdz1213.github.io/wiki/">repository</a></div>
         <div class="motctext" style="font-size: 10px;">you can now only hire at villages, and each village now has a set limit to how much you can hire, and they will mine one of the tiles adjacent to the village instead of where you're standing</div>
         <div class="motctext" style="font-size: 10px;">0.7 will now instead add several new features like automated crafting and exploring nearby areas at the cost of a few coins when at a village</div>
         <div class="motctext" style="font-size: 10px;">biome gen changing will be pushed to v0.15 or further</div>
         <div class="motctext" style="font-size: 10px">0.6.3 refines map generation, patches bugs, makes the consoles more clean, and refines most of the game's code, while 0.6.4 will remake the classes from the ground up to be more readable and expandable</div> -->
-        <div style="color: red; font-size: 10px;" id="motcutext1">only 3 classes have been worked on</div>
-        <div style="color: red; font-size: 10px;" id="motcutext2">they arent done though</div>
-        <div style="color: red; font-size: 10px;" id="motcutext3">there probably wont be very many new commits for a while</div>
+        <div style="color: red; font-size: 10px;" id="motcutext1">only 3 classes have still only been worked on</div>
+        <div style="color: red; font-size: 10px;" id="motcutext2">they arent done still</div>
+        <div style="color: red; font-size: 10px;" id="motcutext3">mining is broken in this commit</div>
     </div>
     <br>
     <div id="console">
@@ -164,6 +170,7 @@
                     if (typeof item === "undefined" && [OK, ERROR_NOTENOUGHITEM].includes(remove)) {
                         map[playerData.location.getCoords()].tileData.itemData = data + `${this.name}-${remove == OK ? amount : playerData.getAmt(this.name)}|`
                     }
+                    console.log(map[playerData.coords])
                 }
             }
             class MapComponent {
@@ -227,7 +234,7 @@
             }
             class MapTile extends MapComponent {
                 /** @param {Number} x @param {Number} y @param {String} biome @param {Number[]} prevalenceOffset @param {Number} richness @param {Number} sizeX @param {Number} sizeY */
-                constructor(x = 0, y = 0, biome, prevalenceOffset, richness, sizeX = 1, sizeY = 1) {
+                constructor(x, y, biome, prevalenceOffset, richness, sizeX = 1, sizeY = 1) {
                     super(x, y);
                     this.biome = biome;
                     /** @type {Object.<string, Number>} */
@@ -239,7 +246,7 @@
                         /** @type {Object.<string, BuildingDataObject>} */
                         buildingData: {},
                         /** @type {String} */
-                        itemData,
+                        itemData: '',
                         materialDensity: richness
                     };
                     this.#offsetInit(prevalenceOffset);
@@ -335,6 +342,43 @@
                     popup.style.opacity = 0;
                 }, 500);
             }
+            /** @typedef EventDataObject @property {HTMLElement} events.element @property {Object} eventData @property {String} eventData.type @property {Boolean} eventData.singleUse */
+            /** @param {...EventDataObject} events  */
+            function awaitEvent(...events) {
+                return new Promise(resolve => {
+                    let index = 0;
+                    const eventExec = () => {
+                        const dataObject = events[index];
+                        dataObject.element.removeEventListener(dataObject.eventData.type, dataObject.eventData.callback);
+                        resolve(index);
+                    }
+                    for (let i = 0; i < events.length; i++) {
+                        const element = events[i].element;
+                        const eventData = events[i].eventData
+                        element.addEventListener(eventData.type, () => { index = i; eventExec(); }, { capture: false, once: true })
+                    }
+                });
+            }
+            /** @callback QuestionCallback @param {Number} index */
+            /** @param {QuestionCallback} callback */
+            async function showQuestion(question, answer1, answer2, callback = (index) => {}) {
+                const elem = EM.elementID('popup1');
+                elem.style.opacity = 1;
+                elem.innerHTML = `${question} <br> <button id="input1">${answer1}</button> <button id="input2">${answer2}</button>`;
+                const input1 = EM.elementID('input1');
+                const input2 = EM.elementID('input2');
+                const results = await awaitEvent({ element: input1, eventData: { singleUse: true, type: 'click' } }, { element: input2, eventData: { singleUse: true, type: 'click' } });
+                EM.elementID(`input${results + 1}`).animate([
+                    { backgroundColor: '#424242', color: '#ffffff' },
+                    { backgroundColor: '#212121', color: '#999999' },
+                    { backgroundColor: '#424242', color: '#ffffff' }
+                ], {
+                    duration: 120,
+                    easing: "ease-in"
+                });
+                elem.style.opacity = 0;
+                callback(results);
+            }
             /** @type {HTMLElement} */
             let storage = EM.elementID('console1');
             /** @type {HTMLElement} */
@@ -426,6 +470,30 @@
                     return item;
                 }
             }
+            /** @param {String} finishText @param {Number} durationMillisec @param {Number} barLength*/
+            async function createProgressBar(finishText, durationMillisec, barLength, callback = () => {}) {
+                const div = updateText('[]', 2);
+                function updateProgressBar(progress) {
+                    const progressBarLength = 10;
+                    const progressBarString = `[${playerData.x}, ${playerData.y}]-> [${"-".repeat(progressBarLength * progress)}]`;
+                    div.innerHTML = progressBarString;
+                }
+                let progress = 0;
+                playerData.doingAction = true;
+                const interval = new Promise((resolve) => {
+                    setInterval(() => {
+                        progress += 0.1;
+                        updateProgressBar(progress);
+                        if (progress >= 1) {
+                            clearInterval(interval);
+                            div.innerHTML = `[${playerData.x}, ${playerData.y}]-> [${finishText}]`;
+                            resolve();
+                        }
+                    }, durationMillisec / barLength);
+                });
+                await interval();
+                callback()
+            }
             function doesExist(value) { return !(value === undefined); }
             function randomNumber(min = 0, max = 1) { min = Math.ceil(min); max = Math.floor(max); return Math.round(Math.random() * (max - min) + min); }
             function isDigit(string = '0') { return /^\d+$/.test(string); }
@@ -463,7 +531,7 @@
             //autogenerated buildings
             const STRUCTURES_1 = {
                 villageObj: { 
-                    structure: new NaturalBuilding('village', 0.075, 1, 1), 
+                    structure: new NaturalBuilding('village', 1/* 0.075 */, 1, 1), 
                     /** @param {MapTile} tile */
                     spawnFunction(tile) {
                         return ['forest', 'plains', 'savannah', 'tropical forest'].includes(tile.biome) && function() { 
@@ -564,18 +632,21 @@
                 get y() {
                     return this.location.vector.y;
                 },
-                get mapTile() {
-                    return map[this.location.getCoords()];
+                get coords() {
+                    return this.location.getCoords();
                 },
                 get mapBuildings() {
-                    return this.mapTile.tileData.buildingData;
+                    return map[this.coords].tileData.buildingData;
                 },
+                /** @param {String} item */
                 removeItem(item, amount = 1) {
                     return this.inventory.removeItem(item, amount);
                 },
+                /** @param {String} item */
                 addItem(item, amount = 1) {
                     return this.inventory.addItem(item, amount);
                 },
+                /** @param {String} item */
                 getAmt(item) {
                     return this.inventory.getItemAmount(item);
                 },
@@ -590,7 +661,6 @@
                     }
                 }
             }
-
             EM.elementID('submit').addEventListener("click", (e) => {
                 inputParser(EM.elementID('consoleinput').value);
                 EM.elementID('submit').animate([
@@ -605,185 +675,180 @@
 
             EM.elementID('consoleinput').addEventListener("keydown", (e) => {
                 if (e.key == 'Enter') {
-                    const gen = inputParser();
-                    gen.next()
-                    gen.next(e.target.value);
+                    inputParser(e.target.value);
                 }
                 if (e.key == 'ArrowUp') {
                     e.target.value = playerData.lastInput;
                 }
             });
-
-            function* inputParser() {
-                while (true) {
-                    if (playerData.getAmt('coin') >= 250 && playerData.inventory.getItemAmount('pro gamer certificate') == ERROR_NOITEM) {
-                        playerData.addItem('pro gamer certificate');
-                        updateText('you got a pro gamer certificate', 2);
-                    }
-                    /** @type {String} t */
-                    let t = yield 0;
-                    let commands = t.toLowerCase().split(' ');
-                    playerData.lastInput = t;
-                    EM.elementID('consoleinput').value = '';
-                    updateText(t);
-
-                    if (commands[0] == 'location') {
-                        updateText(`you are at x: ${String(playerData.x)} y: ${String(playerData.y)}`);
-                        updateText(`your biome is ${playerData.mapTile.biome}`);
-                    }
-
-                    if (commands[0] == 'move') {
-                        let coords = playerData.location;
-                        const directions = {
-                            north: [0, 1],
-                            east: [1, 0],
-                            south: [0, -1],
-                            west: [0, 1],
-                            northeast: [1, 1],
-                            northwest: [-1, 1],
-                            southeast: [1, -1],
-                            southwest: [-1, -1]
-                        }
-                        playerData.location.vector.x += directions?.[commands[1]][0];
-                        playerData.location.vector.y += directions?.[commands[1]][1];
-                        !playerData.mapBuildings.village || updateText('there is a village on this tile');
-                    }
-
-                    if (commands[0] == 'mine') {
-                        const input = isDigit(commands[1]) ? Number(commands[1]) <= 60 ? Number(commands[1]) : 60 : 1;
-                        if (!playerData.doingAction) {
-                            let multiplier = 1;
-                            let canPay = false;
-                            const village = Object.values(playerData.mapBuildings).map(value => value.name).includes('village');
-                            if (village) {
-                                updateText('do you still want to mine, it\'ll cost money for mining in a village but you get more resources');
-                                const input = yield 0;
-                                const enoughMoney = playerData.inventory.removeItem('coin', Math.ceil(input * 1.25));
-                                multiplier = 1.5;
-                                canPay = typeof enoughMoney === "undefined" && commands[2] === 'yes';
-                            }
-                            if (canPay || !village) {
-                                const div = updateText('[]', 2);
-                                playerData.doingAction = true;
-                                function updateProgressBar(progress) {
-                                    const progressBarLength = 10;
-                                    const progressBarString = `[${playerData.x}, ${playerData.y}]-> [${"-".repeat(progressBarLength * progress)}]`;
-                                    div.innerHTML = progressBarString;
-                                }
-                                const miningTime = 1000 * input / playerData.perks.mining.speed;
-                                let progress = 0;
-                                playerData.doingAction = true;
-                                const miningInterval = setInterval(() => {
-                                    progress += 0.1;
-                                    updateProgressBar(progress);
-                                    if (progress >= 1) {
-                                        clearInterval(miningInterval);
-                                        playerData.doingAction = false;
-                                        updateProgressBar(1);
-                                        div.innerHTML = `[${playerData.x}, ${playerData.y}]-> [Mining Done]`;
-                                    }
-                                }, miningTime / 10);
-                                let inventory = playerData.inventory;
-                                const output = mineLocation(input, playerData.mapTile, multiplier, playerData.perks.mining.speed);
-                                const itemList = output.map((item, index, arr) => `${item.amount} ${item.name}${(index + 2 == arr.length && arr.length == 2) ? ' and ' : (arr.length == 1 ? '' : arr.length > 2 && index + 2 == arr.length ? ', and ' : arr.length != 2 && index + 1 != arr.length ? ', ' : '')}`).join('');
-                                setTimeout(() => {
-                                    updateText(`you got ${itemList}`, 2);
-                                }, (1000 * Number(input) / playerData.perks.mining.speed) + 1);
-                            }
-                        }
-                        else {
-                            updateText('already doing something');
-                        }
-                    }
-
-                    if (commands[0] == 'clear') {
-                        EM.elementID('console').innerHTML = '<div id="console1"></div>'
-                        storage = EM.elementID('console1');
-                    }
-                    
-                    if (commands[0] == 'inventory') {
-                        let string = 'you have ';
-                        for (let i = 0; i < playerData.inventory.list.length; i++) {
-                            const item = playerData.inventory.list[i];
-                            const amount = playerData.inventory.listamounts[i];
-                            if (i == playerData.inventory.list.length - 1 && playerData.inventory.list.length >= 3) {
-                                string = `${string} ${amount} ${item}`;
-                            }
-                            else if (i != playerData.inventory.list.length - 1 && playerData.inventory.list.length >= 3) {
-                                string = `${string} ${amount} ${item}, `
-                            }
-                            else if (i == 1 && playerData.inventory.list.length == 2) {
-                                string = `${string} and ${amount} ${item}`;
-                            }
-                            else if (i == 0 && playerData.inventory.list.length == 2) {
-                                string = `${string} ${amount} ${item} `;
-                            }
-                            else if (i == 0 && playerData.inventory.list.length == 1) {
-                                string = `${string} ${amount} ${item}`;
-                            }
-                        }
-                        if (playerData.inventory.list.length == 0) {
-                            string = 'you have nothing';
-                        }
-                        updateText(string);
-                    }
-
-                    if (commands[0] == 'craft') {
-                        if (commands.length < 3) {
-                            updateText('craft syntax: craft <item> <amount>');
-                        }
-                        else {
-                            const crafted = craftItem(commands[1], commands[2], true);
-                            !(crafted instanceof CraftableItem) || updateText(`crafted ${commands[2]} ${crafted.name}`);
-                        }
-                    }
-
-                    if (commands[0] == 'sell') {
-                        if (commands.length < 3) {
-                            updateText('sell syntax: sell <item> <amount>');
-                        }
-                        else {
-                            const amount = isNaN(Number(commands[2])) ? 1 : Number(commands[2]);
-                            const search = commands[1].replace('-', ' ');
-                            const items = ITEMS_1.concat(MATERIALS_1); 
-                            const item = items.find(value => value.name == search);
-                            if (playerData.inventory.list.includes(search) && typeof item !== "undefined") {
-                                if (playerData.inventory.getItemAmount(search) >= amount) {
-                                    playerData.exchangeItem(search, amount, 'coin', item.sellValue * amount);
-                                }
-                            }
-                        }
-                    }
-                    
-                    if (commands[0] == 'hire') {
-                        const tile = map[playerData.location.getCoords()];
-                        if (tile.buildings.village) {
-                            const downPayment = playerData.inventory.removeItem('coin', 20);
-                            if ((downPayment !== ERROR_NOITEM) && (downPayment !== ERROR_NOTENOUGHITEM)) {
-                                if (tile.buildings.village.workers < 5) {
-                                    tile.buildings.willage.workers++;
-                                    playerData.workers.miners.push({ coords: Vector2.addVectors([playerData.location.vector, new Vector2(randomNumber(0, 1) == 1 ? 1 : -1, randomNumber(0, 1) == 1 ? 1 : -1)]), multiplier: randomNumber (10, 12) / 10, speed: randomNumber(50, 60) / 100 });
-                                }
-                            }
-                            else {
-                                updateText('you dont have enough money to hire someone')
-                            }
-                        }
-                        else {
-                            updateText('you can\'t hire someone out of thin air')
-                        }
-                    }
-
-                    // if (commands[0] == 'tset') {
-                    //     playerData.addItem('coin', 20);
-                    //     MATERIALS_1.forEach((value) => {
-                    //         playerData.addItem(value.name, 999);
-                    //     });
-                    //     ITEMS_1.forEach((value) => {
-                    //         playerData.addItem(value.name, 999);
-                    //     });
-                    // }
+            /** @param {String} parserInput */
+            function inputParser(parserInput) {
+                if (playerData.getAmt('coin') >= 250 && playerData.getAmt('pro gamer certificate') == ERROR_NOITEM) {
+                    playerData.addItem('pro gamer certificate');
+                    updateText('you got a pro gamer certificate', 2);
                 }
+                /** @type {String} t */
+                let t = parserInput;
+                let commands = t.toLowerCase().split(' ');
+                playerData.lastInput = t;
+                EM.elementID('consoleinput').value = '';
+                updateText(t);
+
+                if (commands[0] == 'location') {
+                    updateText(`you are at x: ${String(playerData.x)} y: ${String(playerData.y)}`);
+                    updateText(`your biome is ${map[playerData.coords].biome}`);
+                }
+
+                if (commands[0] == 'move') {
+                    let coords = playerData.location;
+                    const directions = {
+                        north: new Vector2(0, 1),
+                        east: new Vector2(1, 0),
+                        south: new Vector2(0, -1),
+                        west: new Vector2(0, 1),
+                        northeast: new Vector2(1, 1),
+                        northwest: new Vector2(-1, 1),
+                        southeast: new Vector2(1, -1),
+                        southwest: new Vector2(-1, -1)
+                    }
+                    let horizontalDistance = 0;
+                    let verticalDistance = 0;
+                    const direction = commands[1];
+                    const distance = isNaN(Number(commands[2])) ? 1 : Number(commands[2]) > 10 ? 10 : Number(commands[2]);
+                    if (direction === 'northeast') {
+                        horizontalDistance = distance / Math.sqrt(2);
+                        verticalDistance = distance / Math.sqrt(2);
+                    } else if (direction === 'southeast') {
+                        horizontalDistance = distance / Math.sqrt(2);
+                        verticalDistance = -distance / Math.sqrt(2);
+                    } else if (direction === 'southwest') {
+                        horizontalDistance = -distance / Math.sqrt(2);
+                        verticalDistance = -distance / Math.sqrt(2);
+                    } else if (direction === 'northwest') {
+                        horizontalDistance = -distance / Math.sqrt(2);
+                        verticalDistance = distance / Math.sqrt(2);
+                    }
+                    playerData.location.vector.x += directions?.[commands[1]]['x'] * Math.round(horizontalDistance);
+                    playerData.location.vector.y += directions?.[commands[1]]['y'] * Math.round(verticalDistance);
+                    !playerData.mapBuildings.village || updateText('there is a village on this tile');
+                }
+
+                if (commands[0] == 'mine') {
+                    const input = isDigit(commands[1]) ? Number(commands[1]) <= 60 ? Number(commands[1]) : 60 : 1;
+                    if (!playerData.doingAction) {
+                        let multiplier = 1;
+                        let canPay = false;
+                        const village = Object.values(playerData.mapBuildings).map(value => value.name).includes('village');
+                        if (village) {
+                            const getAnswer = async function() {
+                                const yesno = await showQuestion('do you still want to mine, it\'ll cost money for mining in a village but you get more resources', 'yes', 'no', (yn) => yn == 0 || updateText('didn\'t mine'));
+                            }();
+                            const enoughMoney = playerData.inventory.removeItem('coin', Math.ceil(input * 1.25));
+                            multiplier = 1.5;
+                            canPay = enoughMoney == OK && commands[2] === 'yes';
+                        }
+                        if (canPay || !village) {
+                            
+                            let inventory = playerData.inventory;
+                            const output = mineLocation(input, map[playerData.coords], multiplier, playerData.perks.mining.speed);
+                            const itemList = output.map((item, index, arr) => `${item.amount} ${item.name}${(index + 2 == arr.length && arr.length == 2) ? ' and ' : (arr.length == 1 ? '' : arr.length > 2 && index + 2 == arr.length ? ', and ' : arr.length != 2 && index + 1 != arr.length ? ', ' : '')}`).join('');
+                            setTimeout(() => {
+                                updateText(`you got ${itemList}`, 2);
+                            }, (1000 * Number(input) / playerData.perks.mining.speed) + 1);
+                        }
+                    }
+                    else {
+                        updateText('already doing something');
+                    }
+                }
+
+                if (commands[0] == 'clear') {
+                    EM.elementID('console').innerHTML = '<div id="console1"></div>'
+                    storage = EM.elementID('console1');
+                }
+                
+                if (commands[0] == 'inventory') {
+                    let string = 'you have ';
+                    for (let i = 0; i < playerData.inventory.list.length; i++) {
+                        const item = playerData.inventory.list[i];
+                        const amount = playerData.inventory.listamounts[i];
+                        if (i == playerData.inventory.list.length - 1 && playerData.inventory.list.length >= 3) {
+                            string = `${string} ${amount} ${item}`;
+                        }
+                        else if (i != playerData.inventory.list.length - 1 && playerData.inventory.list.length >= 3) {
+                            string = `${string} ${amount} ${item}, `
+                        }
+                        else if (i == 1 && playerData.inventory.list.length == 2) {
+                            string = `${string} and ${amount} ${item}`;
+                        }
+                        else if (i == 0 && playerData.inventory.list.length == 2) {
+                            string = `${string} ${amount} ${item} `;
+                        }
+                        else if (i == 0 && playerData.inventory.list.length == 1) {
+                            string = `${string} ${amount} ${item}`;
+                        }
+                    }
+                    if (playerData.inventory.list.length == 0) {
+                        string = 'you have nothing';
+                    }
+                    updateText(string);
+                }
+
+                if (commands[0] == 'craft') {
+                    if (commands.length < 3) {
+                        updateText('craft syntax: craft <item> <amount>');
+                    }
+                    else {
+                        const crafted = craftItem(commands[1], commands[2], true);
+                        !(crafted instanceof CraftableItem) || updateText(`crafted ${commands[2]} ${crafted.name}`);
+                    }
+                }
+
+                if (commands[0] == 'sell') {
+                    if (commands.length < 3) {
+                        updateText('sell syntax: sell <item> <amount>');
+                    }
+                    else {
+                        const amount = isNaN(Number(commands[2])) ? 1 : Number(commands[2]);
+                        const search = commands[1].replace('-', ' ');
+                        const items = ITEMS_1.concat(MATERIALS_1); 
+                        const item = items.find(value => value.name == search);
+                        if (playerData.inventory.list.includes(search) && typeof item !== "undefined") {
+                            if (playerData.inventory.getItemAmount(search) >= amount) {
+                                playerData.exchangeItem(search, amount, 'coin', item.sellValue * amount);
+                            }
+                        }
+                    }
+                }
+                
+                if (commands[0] == 'hire') {
+                    const tile = map[playerData.location.getCoords()];
+                    if (tile.buildings.village) {
+                        const downPayment = playerData.inventory.removeItem('coin', 20);
+                        if ((downPayment !== ERROR_NOITEM) && (downPayment !== ERROR_NOTENOUGHITEM)) {
+                            if (tile.buildings.village.workers < 5) {
+                                tile.buildings.willage.workers++;
+                                playerData.workers.miners.push({ coords: Vector2.addVectors([playerData.location.vector, new Vector2(randomNumber(0, 1) == 1 ? 1 : -1, randomNumber(0, 1) == 1 ? 1 : -1)]), multiplier: randomNumber (10, 12) / 10, speed: randomNumber(50, 60) / 100 });
+                            }
+                        }
+                        else {
+                            updateText('you dont have enough money to hire someone')
+                        }
+                    }
+                    else {
+                        updateText('you can\'t hire someone out of thin air')
+                    }
+                }
+
+                // if (commands[0] == 'tset') {
+                //     playerData.addItem('coin', 20);
+                //     MATERIALS_1.forEach((value) => {
+                //         playerData.addItem(value.name, 999);
+                //     });
+                //     ITEMS_1.forEach((value) => {
+                //         playerData.addItem(value.name, 999);
+                //     });
+                // }
             }
         </script>
         <script>
@@ -792,8 +857,8 @@
             {
                 let chosen = false;
                 setInterval(() => {
-                    if (!map.hasOwnProperty(playerData.location.getCoords())) {
-                        newTile(playerData.location.vector.x, playerData.location.vector.y, false).then((resolution) => {console.log(`${resolution} @ ${playerData.location.getCoords()}`)});
+                    if (!map.hasOwnProperty(playerData.coords)) {
+                        newTile(playerData.location.vector.x, playerData.location.vector.y, false).then((resolution) => {console.log(`${resolution} @ ${playerData.location.getCoords()}`)}, (rejected) => {console.log(String(rejected))});
                     }
                 }, 100);
             }  
